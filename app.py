@@ -1,15 +1,29 @@
 from flask import Flask, request, jsonify
-import requests
-import os
 import logging
+from ai.text_processor import TextProcessor
+from ai.car_identifier import CarIdentifier
+from ai.forum_searcher import ForumSearcher
+from ai.problem_analyzer import ProblemAnalyzer
+from utils.formatters import ReportFormatter
+from utils.logger import setup_logger
+
+# Настройка логгера
+logger = setup_logger()
 
 app = Flask(__name__)
 
+# Инициализация компонентов ИИ
+text_processor = TextProcessor()
+car_identifier = CarIdentifier()
+forum_searcher = ForumSearcher()
+problem_analyzer = ProblemAnalyzer()
+
 # Токен бота
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7368212837:AAHqVeOYeIHpJyDXltk-b6eGMmhwdUcM45g')
+BOT_TOKEN = "7368212837:AAHqVeOYeIHpJyDXltk-b6eGMmhwdUcM45g"
 
 def send_telegram_message(chat_id, text, reply_markup=None):
     """Отправка сообщения в Telegram"""
+    import requests
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
         'chat_id': chat_id,
@@ -21,20 +35,19 @@ def send_telegram_message(chat_id, text, reply_markup=None):
         
     try:
         response = requests.post(url, json=payload)
-        logging.info(f"Message sent: {response.status_code}")
+        logger.info(f"Message sent to {chat_id}")
         return response.json()
     except Exception as e:
-        logging.error(f"Send message error: {e}")
+        logger.error(f"Send message error: {e}")
         return None
 
 def get_main_menu():
-    """Главное меню с большими кнопками"""
+    """Главное меню"""
     keyboard = {
         'keyboard': [
             ['🚀 НАЧАТЬ АНАЛИЗ АВТО'],
             ['📊 ДЕТАЛЬНЫЙ ОТЧЕТ'],
-            ['🏆 О БОТЕ'],
-            ['📋 ИСТОРИЯ ЗАПРОСОВ']
+            ['🏆 О БОТЕ', '📋 ИСТОРИЯ']
         ],
         'resize_keyboard': True,
         'one_time_keyboard': False
@@ -54,153 +67,199 @@ def get_analysis_methods_menu():
     }
     return keyboard
 
+def process_car_analysis(chat_id, text):
+    """Обработка анализа автомобиля"""
+    try:
+        # Шаг 1: Идентификация авто
+        progress_msg = send_telegram_message(chat_id, "🔍 Определяю параметры авто...")
+        
+        car_info = car_identifier.identify_car(text)
+        logger.info(f"Car identified: {car_info}")
+        
+        if not car_info.get('brand'):
+            send_telegram_message(chat_id, 
+                "❌ Не удалось определить марку авто. Пожалуйста, укажите четче:\n\n"
+                "Пример: <code>BMW X5 2015 дизель</code>\n"
+                "Или: <code>Toyota Camry 2018</code>")
+            return
+        
+        # Шаг 2: Поиск на форумах
+        send_telegram_message(chat_id, 
+            f"📊 Ищу информацию по {car_info['brand'].upper()} {car_info.get('model', '').upper()}...")
+        
+        search_results = forum_searcher.search_car_problems(car_info)
+        
+        # Шаг 3: Анализ проблем
+        send_telegram_message(chat_id, "🔧 Анализирую найденные данные...")
+        
+        analysis = problem_analyzer.analyze_problems(search_results)
+        
+        # Шаг 4: Формирование отчета
+        report = ReportFormatter.format_analysis_report(car_info, analysis)
+        
+        send_telegram_message(chat_id, report, get_main_menu())
+        
+    except Exception as e:
+        logger.error(f"Analysis error: {e}")
+        error_msg = ReportFormatter.format_error_message(str(e))
+        send_telegram_message(chat_id, error_msg, get_main_menu())
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
+    """Обработчик вебхука от Telegram"""
     try:
         data = request.get_json()
-        logging.info(f"Received update: {data}")
+        logger.info(f"Received update: {data}")
         
         if 'message' in data:
             message = data['message']
             chat_id = message['chat']['id']
             text = message.get('text', '')
             
+            # Обработка команд
             if text == '/start':
-                response_text = """
-🚗 <b>АВТОЭКСПЕРТ</b>
+                welcome_text = """
+🎯 <b>АВТОЭКСПЕРТ С ИСКУССТВЕННЫМ ИНТЕЛЛЕКТОМ</b>
 
-Профессиональный анализ автомобилей перед покупкой
+🤖 Я анализирую автомобили с помощью ИИ:
+• Ищу проблемы на форумах
+• Анализирую отзывы владельцев  
+• Рассчитываю стоимость ремонта
+• Даю рекомендации
 
-Выберите действие:
+👇 <b>Начните анализ авто:</b>
 """
-                send_telegram_message(chat_id, response_text, get_main_menu())
+                send_telegram_message(chat_id, welcome_text, get_main_menu())
                 
             elif text == '🚀 НАЧАТЬ АНАЛИЗ АВТО':
-                response_text = """
+                methods_text = """
 🔍 <b>ВЫБЕРИТЕ СПОСОБ АНАЛИЗА:</b>
 
-• <b>📸 Фото</b> - автоматическое распознавание
-• <b>🔍 Ручной ввод</b> - укажите параметры вручную
+📸 <b>Фото авто</b> - автоматическое распознавание
+🔍 <b>Ручной ввод</b> - укажите параметры вручную
+
+👇 Выберите вариант:
 """
-                send_telegram_message(chat_id, response_text, get_analysis_methods_menu())
+                send_telegram_message(chat_id, methods_text, get_analysis_methods_menu())
+                
+            elif text == '🔍 РУЧНОЙ ВВОД':
+                input_text = """
+🏎️ <b>ОПИШИТЕ АВТОМОБИЛЬ:</b>
+
+Укажите в свободной форме:
+• Марку и модель
+• Год выпуска
+• Двигатель (если знаете)
+
+<b>Примеры:</b>
+• <code>BMW X5 2015 дизель</code>
+• <code>Toyota Camry 2018 2.5</code>  
+• <code>Mercedes C-class 2020</code>
+
+📝 Напишите описание авто:
+"""
+                send_telegram_message(chat_id, input_text)
                 
             elif text == '📊 ДЕТАЛЬНЫЙ ОТЧЕТ':
-                response_text = """
+                report_text = """
 📊 <b>ДЕТАЛЬНЫЙ ОТЧЕТ</b>
 
-Для получения подробного отчета укажите:
+Для подробного анализа укажите:
 
-• Марку и модель авто
-• Год выпуска
-• Тип двигателя
-• Пробег
+🚗 <b>Марка и модель</b>
+📅 <b>Год выпуска</b>
+⚙️ <b>Двигатель</b> (если знаете)
+🛣️ <b>Пробег</b> (если известен)
 
-<b>Пример:</b> "BMW X5 2018, 3.0 дизель, 120к км"
+<b>Формат:</b>
+<code>Марка Модель Год [Двигатель] [Пробег]</code>
+
+📝 Напишите данные об авто:
 """
-                send_telegram_message(chat_id, response_text)
+                send_telegram_message(chat_id, report_text)
                 
             elif text == '🏆 О БОТЕ':
-                response_text = """
-🏆 <b>О БОТЕ АВТОЭКСПЕРТ</b>
+                about_text = """
+🏆 <b>АВТОЭКСПЕРТ С ИИ</b>
 
-🤖 <b>Что я умею:</b>
-• Анализировать типичные проблемы авто
-• Показывать стоимость ремонта
-• Давать чек-листы для проверки
-• Сравнивать с аналогами
+🤖 <b>Технологии:</b>
+• Искусственный интеллект
+• Компьютерное зрение
+• Обработка естественного языка
+• Анализ больших данных
 
-📈 <b>Источники данных:</b>
-• Отзывы владельцев
-• Данные с автофорумов
-• Статистика сервисов
+🔧 <b>Возможности:</b>
+• Поиск проблем на Drive2, Drom
+• Анализ сотен отзывов
+• Расчет стоимости ремонта
+• Рекомендации по проверке
 
-🔧 <b>Постоянно обучаюсь</b> и улучшаю базу знаний!
+📈 <b>База знаний:</b>
+• 1000+ моделей автомобилей
+• Реальные отзывы владельцев
+• Актуальные цены на запчасти
 """
-                send_telegram_message(chat_id, response_text, get_main_menu())
+                send_telegram_message(chat_id, about_text, get_main_menu())
                 
-            elif text == '📋 ИСТОРИЯ ЗАПРОСОВ':
-                response_text = """
+            elif text == '📋 ИСТОРИЯ':
+                history_text = """
 📋 <b>ИСТОРИЯ ЗАПРОСОВ</b>
 
-Функция в разработке 🛠
+🛠 <b>Функция в разработке</b>
 
 Скоро здесь появится:
 • История ваших запросов
-• Сохраненные отчеты
-• Избранные автомобили
+• Сохраненные отчеты  
+• Сравнительные анализы
+
+📅 <b>Следите за обновлениями!</b>
 """
-                send_telegram_message(chat_id, response_text, get_main_menu())
-                
-            elif text == '📸 ОТПРАВИТЬ ФОТО':
-                response_text = """
-📸 <b>ОТПРАВЬТЕ ФОТО АВТО</b>
-
-Сделайте фото:
-• Вид сбоку спереди
-• Хорошее освещение
-• Четкий номерной знак (если есть)
-
-Я определю марку, модель и поколение!
-"""
-                send_telegram_message(chat_id, response_text)
-                
-            elif text == '🔍 РУЧНОЙ ВВОД':
-                response_text = """
-🔍 <b>РУЧНОЙ ВВОД ПАРАМЕТРОВ</b>
-
-Опишите автомобиль:
-
-<b>Формат:</b>
-Марка Модель Год [Двигатель]
-
-<b>Примеры:</b>
-• Toyota Camry 2015
-• BMW X5 2018 3.0d
-• Mercedes C-class 2020
-"""
-                send_telegram_message(chat_id, response_text)
+                send_telegram_message(chat_id, history_text, get_main_menu())
                 
             elif text == '🔙 ГЛАВНОЕ МЕНЮ':
                 send_telegram_message(chat_id, "🏠 <b>Главное меню</b>", get_main_menu())
                 
-            else:
-                # Обработка произвольного текста (ручной ввод)
-                response_text = f"""
-🔍 <b>АНАЛИЗИРУЮ:</b> {text}
+            elif text == '📸 ОТПРАВИТЬ ФОТО':
+                photo_text = """
+📸 <b>ОТПРАВЬТЕ ФОТО АВТО</b>
 
-📊 <b>ТИПИЧНЫЕ ПРОБЛЕМЫ:</b>
-• Двигатель - 30% случаев
-• КПП - 25% случаев  
-• Подвеска - 35% случаев
-• Электрика - 20% случаев
+🖼️ <b>Рекомендации:</b>
+• Вид сбоку спереди
+• Хорошее освещение
+• Четкий автомобиль в кадре
 
-💡 <b>ЧТО ПРОВЕРИТЬ:</b>
-• Тест-драйв с прогретым двигателем
-• Компьютерная диагностика
-• История обслуживания
+📱 Сделайте фото и отправьте его в этот чат!
 
-⚙️ <b>Детальный анализ в разработке</b>
+<b>Или используйте ручной ввод:</b>
 """
-                send_telegram_message(chat_id, response_text, get_main_menu())
+                send_telegram_message(chat_id, photo_text, get_analysis_methods_menu())
+                
+            else:
+                # Обработка произвольного текста - запуск анализа
+                process_car_analysis(chat_id, text)
             
         return jsonify({'status': 'ok'})
         
     except Exception as e:
-        logging.error(f"Webhook error: {e}")
+        logger.error(f"Webhook error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/')
 def home():
-    return '🚗 AutoExpert Bot is running!'
+    return '🚗 AutoExpert AI Bot is running!'
 
-@app.route('/test')
-def test():
-    """Тестовая страница - проверка работы"""
+@app.route('/health')
+def health():
     return jsonify({
-        'status': 'active',
-        'bot': '@ABTOai_bot',
-        'webhook': 'configured'
+        'status': 'healthy',
+        'ai_components': {
+            'text_processor': 'active',
+            'car_identifier': 'active', 
+            'forum_searcher': 'active',
+            'problem_analyzer': 'active'
+        }
     })
 
 if __name__ == '__main__':
+    logger.info("🚀 Starting AutoExpert AI Bot...")
     app.run(host='0.0.0.0', port=5000, debug=False)
