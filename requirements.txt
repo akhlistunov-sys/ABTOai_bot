@@ -1,0 +1,11 @@
+# 📁 requirements.txt
+python-telegram-bot==20.7
+flask==2.3.3
+requests==2.31.0
+pillow==10.0.1
+opencv-python==4.8.1.78
+torch==2.1.0
+torchvision==0.16.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+numpy==1.24.3
