@@ -1,27 +1,44 @@
-# 📁 app.py
-from flask import Flask, request, jsonify
+from flask import Flask, request
 import telegram
-from bot.telegram_handler import process_message
 import os
 import logging
 
 app = Flask(__name__)
 bot = telegram.Bot(token=os.getenv('TELEGRAM_BOT_TOKEN'))
-logging.basicConfig(level=logging.INFO)
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    try:
-        update = request.get_json()
-        process_message(bot, update)
-        return jsonify({'status': 'ok'})
-    except Exception as e:
-        logging.error(f"Webhook error: {e}")
-        return jsonify({'status': 'error'}), 500
+    update = request.get_json()
+    chat_id = update['message']['chat']['id']
+    text = update['message'].get('text', '')
+    
+    if text == '/start':
+        bot.send_message(chat_id=chat_id, text="🚗 Бот запущен! Отправьте марку автомобиля для анализа")
+    else:
+        bot.send_message(chat_id=chat_id, text=f"🔍 Ищу информацию по '{text}'...")
+        # Заглушка - здесь будет реальный поиск
+        report = f"""
+🔍 *{text.upper()} - ОТЧЕТ*
 
-@app.route('/health', methods=['GET'])
-def health():
-    return 'Bot is running'
+⚙️ *ТИПИЧНЫЕ ПРОБЛЕМЫ:*
+• Двигатель - 30% случаев
+• КПП - 25% случаев  
+• Подвеска - 35% случаев
+
+💡 *ЧТО ПРОВЕРИТЬ:*
+• Тест-драйв с прогретым двигателем
+• Диагностика на СТО
+• Проверка истории обслуживания
+
+*Бот в стадии разработки*
+"""
+        bot.send_message(chat_id=chat_id, text=report, parse_mode='Markdown')
+    
+    return 'ok'
+
+@app.route('/')
+def home():
+    return 'Bot is running!'
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
