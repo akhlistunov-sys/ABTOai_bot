@@ -4,7 +4,6 @@ import requests
 import base64
 import urllib3
 from dotenv import load_dotenv
-import telegram
 import json
 
 # Отключаем SSL предупреждения
@@ -14,9 +13,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 load_dotenv()
 
 app = Flask(__name__)
-
-# Telegram Bot
-bot = telegram.Bot(token=os.getenv('BOT_TOKEN'))
 
 # Функция для работы с GigaChat API
 def get_gigachat_token():
@@ -106,26 +102,31 @@ def analyze_car(car_data):
     except Exception as e:
         return {"error": str(e)}
 
-# Обработка входящих сообщений от Telegram
+# Простой Telegram webhook обработчик
 @app.route('/webhook', methods=['POST'])
 def webhook():
     try:
-        update = telegram.Update.de_json(request.get_json(), bot)
+        data = request.get_json()
         
-        if update.message:
-            chat_id = update.message.chat.id
-            text = update.message.text
+        if 'message' in data:
+            chat_id = data['message']['chat']['id']
+            text = data['message'].get('text', '')
             
             if text == '/start':
-                bot.send_message(
-                    chat_id=chat_id,
-                    text="🚗 Добро пожаловать в ABTOai_bot!\n\nЯ помогу проанализировать автомобиль перед покупкой.\n\nОтправьте данные авто в формате:\n• Марка\n• Модель\n• Год\n• Двигатель\n• КПП\n• Пробег\n\nИли используйте /analyze для начала анализа"
+                send_telegram_message(
+                    chat_id,
+                    "🚗 Добро пожаловать в ABTOai_bot!\n\n"
+                    "Я помогу проанализировать автомобиль перед покупкой.\n\n"
+                    "Отправьте данные авто в формате:\n"
+                    "• Марка\n• Модель\n• Год\n• Двигатель\n• КПП\n• Пробег\n\n"
+                    "Пример: BMW X5 2018 3.0d Автомат 120000"
                 )
             
-            elif text == '/analyze':
-                bot.send_message(
-                    chat_id=chat_id,
-                    text="📝 Введите данные автомобиля:\n\nПример:\nBMW X5 2018 3.0d Автомат 120000"
+            elif text.startswith('/analyze'):
+                send_telegram_message(
+                    chat_id,
+                    "📝 Введите данные автомобиля:\n\n"
+                    "Пример:\nBMW X5 2018 3.0d Автомат 120000"
                 )
             
             else:
@@ -141,26 +142,26 @@ def webhook():
                         'mileage': parts[5]
                     }
                     
-                    bot.send_message(chat_id=chat_id, text="🔍 Анализирую автомобиль...")
+                    send_telegram_message(chat_id, "🔍 Анализирую автомобиль...")
                     
                     result = analyze_car(car_data)
                     
                     if "error" in result:
-                        bot.send_message(chat_id=chat_id, text=f"❌ Ошибка: {result['error']}")
+                        send_telegram_message(chat_id, f"❌ Ошибка: {result['error']}")
                     else:
                         # Разбиваем длинное сообщение на части
                         analysis_text = result
                         if len(analysis_text) > 4000:
                             parts = [analysis_text[i:i+4000] for i in range(0, len(analysis_text), 4000)]
                             for part in parts:
-                                bot.send_message(chat_id=chat_id, text=part)
+                                send_telegram_message(chat_id, part)
                         else:
-                            bot.send_message(chat_id=chat_id, text=analysis_text)
+                            send_telegram_message(chat_id, analysis_text)
                 
                 else:
-                    bot.send_message(
-                        chat_id=chat_id,
-                        text="❌ Неправильный формат. Пример:\nBMW X5 2018 3.0d Автомат 120000"
+                    send_telegram_message(
+                        chat_id,
+                        "❌ Неправильный формат. Пример:\nBMW X5 2018 3.0d Автомат 120000"
                     )
         
         return jsonify({"status": "ok"})
@@ -169,13 +170,39 @@ def webhook():
         print(f"Webhook error: {str(e)}")
         return jsonify({"status": "error", "message": str(e)})
 
+# Функция для отправки сообщений в Telegram
+def send_telegram_message(chat_id, text):
+    try:
+        bot_token = os.getenv('BOT_TOKEN')
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            'chat_id': chat_id,
+            'text': text,
+            'parse_mode': 'HTML'
+        }
+        response = requests.post(url, json=payload)
+        return response.json()
+    except Exception as e:
+        print(f"Telegram send error: {str(e)}")
+        return {"error": str(e)}
+
 # Установка webhook для Telegram
 @app.route('/set-webhook', methods=['GET'])
 def set_webhook():
     try:
+        bot_token = os.getenv('BOT_TOKEN')
         webhook_url = f"https://abtoai-bot.onrender.com/webhook"
-        result = bot.set_webhook(webhook_url)
-        return jsonify({"status": "success", "webhook_set": result})
+        
+        url = f"https://api.telegram.org/bot{bot_token}/setWebhook"
+        payload = {
+            'url': webhook_url
+        }
+        response = requests.post(url, json=payload)
+        
+        return jsonify({
+            "status": "success", 
+            "webhook_set": response.json()
+        })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
