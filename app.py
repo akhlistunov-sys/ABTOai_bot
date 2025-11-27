@@ -1,32 +1,29 @@
-from flask import Flask, jsonify
-from services.gigachat_api import get_gigachat_token
-import os
-
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return "ABTOai_bot работает! 🚗"
-
 @app.route('/test-gigachat')
 def test_gigachat():
+    print("🚀 Starting GigaChat test...")
     response = get_gigachat_token()
     
+    # Логируем в консоль Render
+    print(f"🎯 Final response type: {type(response)}")
+    
     if hasattr(response, 'status_code'):
+        print(f"📊 Status code: {response.status_code}")
         if response.status_code == 200:
-            token = response.json().get("access_token")
+            token_data = response.json()
+            token = token_data.get("access_token")
             return jsonify({
-                "status": "success", 
+                "status": "success",
                 "status_code": response.status_code,
                 "token_preview": token[:50] + "..." if token else "None",
+                "expires_in": token_data.get("expires_in"),
                 "message": "✅ GigaChat API работает!"
             })
         else:
             return jsonify({
                 "status": "error",
-                "status_code": response.status_code, 
+                "status_code": response.status_code,
                 "response": response.text,
-                "message": "❌ Ошибка аутентификации"
+                "message": "❌ Ошибка аутентификации в GigaChat"
             })
     else:
         return jsonify({
@@ -34,12 +31,3 @@ def test_gigachat():
             "error": str(response),
             "message": "❌ Ошибка подключения к GigaChat API"
         })
-@app.route('/debug-env')
-def debug_env():
-    return jsonify({
-        "client_id": os.getenv('GIGACHAT_CLIENT_ID', 'NOT_FOUND'),
-        "client_secret": os.getenv('GIGACHAT_CLIENT_SECRET', 'NOT_FOUND')
-    })
-# 🔥 ВАЖНО: Исправленная строка для Render
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
