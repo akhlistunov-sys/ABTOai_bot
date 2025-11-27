@@ -34,7 +34,12 @@ def test_gigachat():
             "error": str(response),
             "message": "❌ Ошибка подключения к GigaChat API"
         })
-
+@app.route('/debug-env')
+def debug_env():
+    return jsonify({
+        "client_id": os.getenv('GIGACHAT_CLIENT_ID', 'NOT_FOUND'),
+        "client_secret": os.getenv('GIGACHAT_CLIENT_SECRET', 'NOT_FOUND')
+    })
 # 🔥 ВАЖНО: Исправленная строка для Render
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
