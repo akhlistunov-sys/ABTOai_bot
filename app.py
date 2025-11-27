@@ -1,31 +1,17 @@
 from flask import Flask, jsonify
-import requests
-import base64
+from services.gigachat_api import get_gigachat_token
 
 app = Flask(__name__)
 
-# Ваш основной код бота здесь...
+@app.route('/')
+def home():
+    return "ABTOai_bot работает! 🚗"
 
-# Тестовый маршрут для проверки GigaChat API
 @app.route('/test-gigachat')
 def test_gigachat():
-    client_id = "019ac4e1-9416-7c5b-8722-fd5b09d85848"
-    client_secret = "d4fa8a83-8b34-42cb-b16b-1ec8bafc6a88"
+    response = get_gigachat_token()
     
-    credentials = f"{client_id}:{client_secret}"
-    encoded_credentials = base64.b64encode(credentials.encode()).decode()
-    
-    url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
-    payload = {'scope': 'GIGACHAT_API_PERS'}
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json',
-        'Authorization': f'Basic {encoded_credentials}'
-    }
-    
-    try:
-        response = requests.post(url, headers=headers, data=payload, verify=False, timeout=10)
-        
+    if hasattr(response, 'status_code'):
         if response.status_code == 200:
             token = response.json().get("access_token")
             return jsonify({
@@ -41,11 +27,10 @@ def test_gigachat():
                 "response": response.text,
                 "message": "❌ Ошибка аутентификации"
             })
-            
-    except Exception as e:
+    else:
         return jsonify({
             "status": "exception",
-            "error": str(e),
+            "error": str(response),
             "message": "❌ Ошибка подключения к GigaChat API"
         })
 
