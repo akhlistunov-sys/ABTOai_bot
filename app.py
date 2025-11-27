@@ -4,6 +4,8 @@ import requests
 import base64
 import urllib3
 from dotenv import load_dotenv
+import telegram
+import json
 
 # Отключаем SSL предупреждения
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -12,6 +14,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 load_dotenv()
 
 app = Flask(__name__)
+
+# Telegram Bot
+bot = telegram.Bot(token=os.getenv('BOT_TOKEN'))
 
 # Функция для работы с GigaChat API
 def get_gigachat_token():
@@ -75,6 +80,7 @@ def analyze_car(car_data):
         6. РЕКОМЕНДАЦИИ - что проверять при осмотре
 
         Будь конкретен, укажи пробеги и стоимость ремонта.
+        Используй данные с российских форумов: Drom.ru, Drive2.ru
         """
         
         # Отправляем запрос к GigaChat
@@ -86,7 +92,8 @@ def analyze_car(car_data):
         data = {
             "model": "GigaChat",
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7
+            "temperature": 0.7,
+            "max_tokens": 2000
         }
         
         response = requests.post(url, headers=headers, json=data, verify=False, timeout=30)
@@ -98,6 +105,79 @@ def analyze_car(car_data):
             
     except Exception as e:
         return {"error": str(e)}
+
+# Обработка входящих сообщений от Telegram
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    try:
+        update = telegram.Update.de_json(request.get_json(), bot)
+        
+        if update.message:
+            chat_id = update.message.chat.id
+            text = update.message.text
+            
+            if text == '/start':
+                bot.send_message(
+                    chat_id=chat_id,
+                    text="🚗 Добро пожаловать в ABTOai_bot!\n\nЯ помогу проанализировать автомобиль перед покупкой.\n\nОтправьте данные авто в формате:\n• Марка\n• Модель\n• Год\n• Двигатель\n• КПП\n• Пробег\n\nИли используйте /analyze для начала анализа"
+                )
+            
+            elif text == '/analyze':
+                bot.send_message(
+                    chat_id=chat_id,
+                    text="📝 Введите данные автомобиля:\n\nПример:\nBMW X5 2018 3.0d Автомат 120000"
+                )
+            
+            else:
+                # Пытаемся разобрать ввод пользователя
+                parts = text.split()
+                if len(parts) >= 6:
+                    car_data = {
+                        'brand': parts[0],
+                        'model': parts[1],
+                        'year': parts[2],
+                        'engine': parts[3],
+                        'transmission': parts[4],
+                        'mileage': parts[5]
+                    }
+                    
+                    bot.send_message(chat_id=chat_id, text="🔍 Анализирую автомобиль...")
+                    
+                    result = analyze_car(car_data)
+                    
+                    if "error" in result:
+                        bot.send_message(chat_id=chat_id, text=f"❌ Ошибка: {result['error']}")
+                    else:
+                        # Разбиваем длинное сообщение на части
+                        analysis_text = result
+                        if len(analysis_text) > 4000:
+                            parts = [analysis_text[i:i+4000] for i in range(0, len(analysis_text), 4000)]
+                            for part in parts:
+                                bot.send_message(chat_id=chat_id, text=part)
+                        else:
+                            bot.send_message(chat_id=chat_id, text=analysis_text)
+                
+                else:
+                    bot.send_message(
+                        chat_id=chat_id,
+                        text="❌ Неправильный формат. Пример:\nBMW X5 2018 3.0d Автомат 120000"
+                    )
+        
+        return jsonify({"status": "ok"})
+    
+    except Exception as e:
+        print(f"Webhook error: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)})
+
+# Установка webhook для Telegram
+@app.route('/set-webhook', methods=['GET'])
+def set_webhook():
+    try:
+        webhook_url = f"https://abtoai-bot.onrender.com/webhook"
+        result = bot.set_webhook(webhook_url)
+        return jsonify({"status": "success", "webhook_set": result})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 # Маршруты Flask
 @app.route('/')
