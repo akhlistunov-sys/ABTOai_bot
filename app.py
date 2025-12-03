@@ -1,216 +1,25 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 import os
-import requests
-import base64
-import urllib3
-from dotenv import load_dotenv
 import json
-
-# Отключаем SSL предупреждения
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+import time
+from datetime import datetime
+from dotenv import load_dotenv
+from services.gigachat_api import GigaChatAPI
 
 # Загружаем переменные окружения
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY', 'abtoai-secret-key-2024')
 
-# Функция для работы с GigaChat API
-def get_gigachat_token():
-    try:
-        client_id = os.getenv('GIGACHAT_CLIENT_ID')
-        client_secret = os.getenv('GIGACHAT_CLIENT_SECRET')
-        
-        # Кодируем credentials
-        credentials = f"{client_id}:{client_secret}"
-        encoded_credentials = base64.b64encode(credentials.encode()).decode()
-        
-        url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
-        payload = 'scope=GIGACHAT_API_PERS'
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json',
-            'Authorization': f'Basic {encoded_credentials}',
-            'RqUID': '6f0b1291-c7f3-4c4a-9d6a-2d47b5d91e13'
-        }
-        
-        response = requests.post(
-            url, 
-            headers=headers, 
-            data=payload, 
-            verify=False, 
-            timeout=30
-        )
-        
-        return response
-        
-    except Exception as e:
-        return {"error": str(e)}
+# Инициализация GigaChat API
+gigachat = GigaChatAPI()
 
-# Функция для анализа автомобиля через GigaChat
-def analyze_car(car_data):
-    try:
-        # Сначала получаем токен
-        token_response = get_gigachat_token()
-        if not hasattr(token_response, 'status_code') or token_response.status_code != 200:
-            return {"error": "Ошибка аутентификации GigaChat"}
-        
-        access_token = token_response.json().get("access_token")
-        
-        # ФИНАЛЬНЫЙ ПРОМПТ - СБАЛАНСИРОВАННЫЙ ОТЧЕТ
-        prompt = f"""
-        Ты — автоэксперт с 15-летним опытом. Проанализируй автомобиль и составь сбалансированный отчет.
+# База данных пользовательских сессий
+user_sessions = {}
 
-        МОДЕЛЬ: {car_data.get('brand')} {car_data.get('model')} {car_data.get('year')}
-        ДВИГАТЕЛЬ: {car_data.get('engine')} 
-        КОРОБКА: {car_data.get('transmission')}
-        ПРОБЕГ: {car_data.get('mileage')} км
-
-        Используй данные с Drive2.ru, Drom.ru, отзывы реальных владельцев.
-
-        СТРУКТУРА ОТЧЕТА (ОБЯЗАТЕЛЬНО):
-
-        🚗 ОБЩАЯ ОЦЕНКА
-        [Краткая характеристика автомобиля]
-        [Общий вердикт для данного пробега]
-
-        🔧 ДВИГАТЕЛЬ {car_data.get('engine')}
-        ✅ Надежность: [Оценка]
-        📝 Описание: [Характеристика мотора]
-        ⚠️ Основные нюансы:
-        • [Конкретные особенности, пробеги ремонта, цены]
-        • [Типичные поломки для этого двигателя]
-        • [Ресурс и рекомендации по обслуживанию]
-
-        ⚙️ КОРОБКА {car_data.get('transmission')}  
-        ✅ Надежность: [Оценка]
-        📝 Описание: [Характеристика КПП]
-        ⚠️ Основные нюансы:
-        • [Особенности типа КПП (вариатор/робот/автомат)]
-        • [Пробеги обслуживания и ремонта]
-        • [Слабые места и стоимость восстановления]
-
-        🛞 ПОДВЕСКА
-        ✅ Надежность: [Оценка]
-        📝 Описание: [Тип подвески и поведение]
-        ⚠️ Основные нюансы:
-        • [Ресурс элементов, пробеги замены]
-        • [Влияние российских дорог]
-        • [Стоимость обслуживания]
-
-        ⚡ ЭЛЕКТРИКА
-        ✅ Надежность: [Оценка]  
-        📝 Описание: [Общая оценка электроники]
-        ⚠️ Основные нюансы:
-        • [Частые сбои и проблемы]
-        • [Блоки управления, датчики]
-        • [Стоимость диагностики и ремонта]
-
-        📋 ДЛЯ ПРОБЕГА {car_data.get('mileage')} км
-        [Конкретные рекомендации по осмотру]
-        [Что должно быть уже заменено]
-        [Что ожидать в ближайшем будущем]
-
-        ТРЕБОВАНИЯ:
-        - Будь объективен: указывай и плюсы и минусы
-        - Только конкретные цифры: пробеги, цены в рублях
-        - Акцент на ОСНОВНЫЕ НЮАНСЫ каждого узла
-        - Данные с российских форумов и отзывов
-        """
-
-        # Отправляем запрос к GigaChat
-        url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json'
-        }
-        data = {
-            "model": "GigaChat",
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.3,
-            "max_tokens": 3500
-        }
-        
-        response = requests.post(url, headers=headers, json=data, verify=False, timeout=30)
-        
-        if response.status_code == 200:
-            return response.json()["choices"][0]["message"]["content"]
-        else:
-            return {"error": f"Ошибка GigaChat: {response.text}"}
-            
-    except Exception as e:
-        return {"error": str(e)}
-
-# Простой Telegram webhook обработчик
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    try:
-        data = request.get_json()
-        
-        if 'message' in data:
-            chat_id = data['message']['chat']['id']
-            text = data['message'].get('text', '')
-            
-            if text == '/start':
-                send_telegram_message(
-                    chat_id,
-                    "🚗 Добро пожаловать в ABTOai_bot!\n\n"
-                    "Проанализирую любой автомобиль перед покупкой.\n\n"
-                    "Отправьте данные в формате:\n"
-                    "• Марка Модель Год Двигатель КПП Пробег\n\n"
-                    "Пример: BMW X5 2018 3.0d Автомат 120000"
-                )
-            
-            elif text.startswith('/analyze'):
-                send_telegram_message(
-                    chat_id,
-                    "📝 Введите данные автомобиля:\n\n"
-                    "Формат: Марка Модель Год Двигатель КПП Пробег\n"
-                    "Пример: Toyota Camry 2020 2.5L Автомат 80000"
-                )
-            
-            else:
-                # Пытаемся разобрать ввод пользователя
-                parts = text.split()
-                if len(parts) >= 6:
-                    car_data = {
-                        'brand': parts[0],
-                        'model': parts[1],
-                        'year': parts[2],
-                        'engine': parts[3],
-                        'transmission': parts[4],
-                        'mileage': parts[5]
-                    }
-                    
-                    send_telegram_message(chat_id, "🔍 Анализирую автомобиль...")
-                    
-                    result = analyze_car(car_data)
-                    
-                    if "error" in result:
-                        send_telegram_message(chat_id, f"❌ Ошибка: {result['error']}")
-                    else:
-                        # Разбиваем длинное сообщение на части
-                        analysis_text = result
-                        if len(analysis_text) > 4000:
-                            parts = [analysis_text[i:i+4000] for i in range(0, len(analysis_text), 4000)]
-                            for part in parts:
-                                send_telegram_message(chat_id, part)
-                        else:
-                            send_telegram_message(chat_id, analysis_text)
-                
-                else:
-                    send_telegram_message(
-                        chat_id,
-                        "❌ Неправильный формат. Пример:\nBMW X5 2018 3.0d Автомат 120000"
-                    )
-        
-        return jsonify({"status": "ok"})
-    
-    except Exception as e:
-        print(f"Webhook error: {str(e)}")
-        return jsonify({"status": "error", "message": str(e)})
-
-# Функция для отправки сообщений в Telegram
 def send_telegram_message(chat_id, text):
+    """Отправка сообщения в Telegram"""
     try:
         bot_token = os.getenv('BOT_TOKEN')
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -225,9 +34,187 @@ def send_telegram_message(chat_id, text):
         print(f"Telegram send error: {str(e)}")
         return {"error": str(e)}
 
-# Установка webhook для Telegram
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    """Обработчик входящих сообщений от Telegram"""
+    try:
+        data = request.get_json()
+        
+        if 'message' in data:
+            chat_id = data['message']['chat']['id']
+            text = data['message'].get('text', '')
+            
+            # Инициализация сессии пользователя
+            if chat_id not in user_sessions:
+                user_sessions[chat_id] = {
+                    'step': 'brand',
+                    'car_data': {},
+                    'created_at': datetime.now().isoformat()
+                }
+            
+            session = user_sessions[chat_id]
+            
+            if text == '/start':
+                send_telegram_message(chat_id, 
+                    "🚗 Добро пожаловать в ABTOai_bot!\n\n"
+                    "Я помогу проанализировать автомобиль перед покупкой.\n\n"
+                    "Введите марку автомобиля:"
+                )
+                session['step'] = 'brand'
+                session['car_data'] = {}
+                
+            elif text == '/reset':
+                session['step'] = 'brand'
+                session['car_data'] = {}
+                send_telegram_message(chat_id, "🔄 Сессия сброшена. Введите марку автомобиля:")
+                
+            elif session['step'] == 'brand':
+                session['car_data']['brand'] = text
+                session['step'] = 'model'
+                send_telegram_message(chat_id, 
+                    f"✅ Марка: {text}\n\n"
+                    f"Теперь введите модель автомобиля:"
+                )
+                
+            elif session['step'] == 'model':
+                session['car_data']['model'] = text
+                brand = session['car_data']['brand']
+                model = text
+                
+                # Получаем варианты от GigaChat
+                send_telegram_message(chat_id, 
+                    f"✅ {brand} {model}\n\n"
+                    f"🔍 Ищу доступные варианты..."
+                )
+                
+                variants = gigachat.get_car_variants(brand, model)
+                
+                if "error" in variants:
+                    send_telegram_message(chat_id, 
+                        f"❌ Не удалось получить данные.\n\n"
+                        f"Введите поколение вручную (например: F15, G30):"
+                    )
+                    session['step'] = 'generation_manual'
+                else:
+                    # Формируем сообщение с вариантами
+                    response_text = f"✅ Найдены варианты для {brand} {model}:\n\n"
+                    
+                    if 'generations' in variants:
+                        response_text += "📅 ПОКОЛЕНИЯ:\n"
+                        for gen in variants['generations'][:5]:  # Первые 5
+                            response_text += f"• {gen.get('name', '')} ({gen.get('years', '')})\n"
+                    
+                    if 'engines' in variants:
+                        response_text += "\n🔧 ДВИГАТЕЛИ:\n"
+                        for engine in variants['engines'][:5]:
+                            response_text += f"• {engine.get('name', '')} ({engine.get('power', '')})\n"
+                    
+                    response_text += "\nВведите поколение автомобиля:"
+                    
+                    send_telegram_message(chat_id, response_text)
+                    session['step'] = 'generation'
+                    session['variants'] = variants
+                    
+            elif session['step'] in ['generation', 'generation_manual']:
+                session['car_data']['generation'] = text
+                session['step'] = 'engine'
+                
+                # Получаем двигатели из вариантов или просим ввести
+                if 'variants' in session and 'engines' in session['variants']:
+                    engines_text = "Выберите двигатель:\n"
+                    for engine in session['variants']['engines'][:8]:
+                        engines_text += f"• {engine.get('name', '')}\n"
+                    engines_text += "\nИли введите свой вариант:"
+                else:
+                    engines_text = "Введите двигатель (например: 2.0d, 3.0i):"
+                
+                send_telegram_message(chat_id, engines_text)
+                
+            elif session['step'] == 'engine':
+                session['car_data']['engine'] = text
+                session['step'] = 'transmission'
+                
+                # Получаем КПП из вариантов или просим ввести
+                if 'variants' in session and 'transmissions' in session['variants']:
+                    trans_text = "Выберите коробку передач:\n"
+                    for trans in session['variants']['transmissions'][:5]:
+                        trans_text += f"• {trans.get('name', '')}\n"
+                    trans_text += "\nИли введите свою КПП:"
+                else:
+                    trans_text = "Введите коробку передач (например: Автомат, Механика):"
+                
+                send_telegram_message(chat_id, trans_text)
+                
+            elif session['step'] == 'transmission':
+                session['car_data']['transmission'] = text
+                session['step'] = 'mileage'
+                send_telegram_message(chat_id, 
+                    "Введите пробег автомобиля (в км):\n"
+                    "Пример: 120000"
+                )
+                
+            elif session['step'] == 'mileage':
+                try:
+                    mileage = int(text)
+                    session['car_data']['mileage'] = mileage
+                    session['step'] = 'analyzing'
+                    
+                    # Начинаем анализ
+                    car_data = session['car_data']
+                    send_telegram_message(chat_id, 
+                        f"🔍 Анализирую автомобиль:\n"
+                        f"• {car_data['brand']} {car_data['model']}\n"
+                        f"• Поколение: {car_data.get('generation', 'не указано')}\n"
+                        f"• Двигатель: {car_data['engine']}\n"
+                        f"• КПП: {car_data['transmission']}\n"
+                        f"• Пробег: {car_data['mileage']} км\n\n"
+                        f"Подождите 15-20 секунд..."
+                    )
+                    
+                    # Запрашиваем анализ у GigaChat
+                    analysis_result = gigachat.analyze_car(car_data)
+                    
+                    if "error" in analysis_result:
+                        send_telegram_message(chat_id, 
+                            f"❌ Ошибка анализа: {analysis_result['error']}\n\n"
+                            f"Попробуйте снова /start"
+                        )
+                    else:
+                        # Разбиваем длинное сообщение на части
+                        analysis_text = analysis_result
+                        if len(analysis_text) > 4000:
+                            parts = [analysis_text[i:i+4000] for i in range(0, len(analysis_text), 4000)]
+                            for i, part in enumerate(parts):
+                                send_telegram_message(chat_id, part)
+                                if i < len(parts) - 1:
+                                    time.sleep(1)  # Пауза между сообщениями
+                        else:
+                            send_telegram_message(chat_id, analysis_text)
+                        
+                        # Предлагаем новый анализ
+                        send_telegram_message(chat_id,
+                            "\n\n🔄 Хотите проанализировать другой автомобиль?\n"
+                            "Используйте /start"
+                        )
+                    
+                    # Очищаем сессию
+                    del user_sessions[chat_id]
+                    
+                except ValueError:
+                    send_telegram_message(chat_id, 
+                        "❌ Пробег должен быть числом.\n"
+                        "Введите пробег в км (например: 120000):"
+                    )
+        
+        return jsonify({"status": "ok"})
+    
+    except Exception as e:
+        print(f"Webhook error: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)})
+
 @app.route('/set-webhook', methods=['GET'])
 def set_webhook():
+    """Установка webhook для Telegram"""
     try:
         bot_token = os.getenv('BOT_TOKEN')
         webhook_url = f"https://abtoai-bot.onrender.com/webhook"
@@ -245,65 +232,27 @@ def set_webhook():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
-# Маршруты Flask
+# Тестовые маршруты
 @app.route('/')
 def home():
-    return "🚗 ABTOai_bot работает! Используйте /test-gigachat для проверки API"
+    return "🚗 ABTOai_bot работает! Webhook: /set-webhook"
 
 @app.route('/test-gigachat')
 def test_gigachat():
-    response = get_gigachat_token()
-    
-    if hasattr(response, 'status_code'):
-        if response.status_code == 200:
-            token_data = response.json()
-            token = token_data.get("access_token")
-            return jsonify({
-                "status": "success",
-                "status_code": response.status_code,
-                "token_preview": token[:50] + "..." if token else "None",
-                "expires_in": token_data.get("expires_in"),
-                "message": "✅ GigaChat API работает!"
-            })
-        else:
-            return jsonify({
-                "status": "error",
-                "status_code": response.status_code,
-                "response": response.text,
-                "message": "❌ Ошибка аутентификации в GigaChat"
-            })
-    else:
-        return jsonify({
-            "status": "exception",
-            "error": str(response),
-            "message": "❌ Ошибка подключения к GigaChat API"
-        })
-
-@app.route('/analyze-car', methods=['POST'])
-def analyze_car_route():
-    try:
-        car_data = request.json
-        result = analyze_car(car_data)
-        
-        if "error" in result:
-            return jsonify({"status": "error", "message": result["error"]})
-        else:
-            return jsonify({"status": "success", "analysis": result})
-            
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
-
-@app.route('/debug-env')
-def debug_env():
+    """Тест GigaChat API"""
+    variants = gigachat.get_car_variants("BMW", "X5")
     return jsonify({
-        "client_id": os.getenv('GIGACHAT_CLIENT_ID', 'NOT_FOUND'),
-        "client_secret": os.getenv('GIGACHAT_CLIENT_SECRET', 'NOT_FOUND'),
-        "bot_token": os.getenv('BOT_TOKEN', 'NOT_FOUND')
+        "status": "success",
+        "variants": variants
     })
 
 @app.route('/health')
 def health_check():
-    return jsonify({"status": "healthy", "service": "ABTOai_bot"})
+    return jsonify({
+        "status": "healthy", 
+        "service": "ABTOai_bot",
+        "timestamp": datetime.now().isoformat()
+    })
 
 # Запуск для Render
 if __name__ == '__main__':
