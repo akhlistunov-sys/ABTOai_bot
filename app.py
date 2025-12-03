@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, session
 import os
 import json
 import time
+import requests  # ← ДОБАВЬТЕ ЭТУ СТРОКУ!
 from datetime import datetime
 from dotenv import load_dotenv
 from services.gigachat_api import GigaChatAPI
