@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>О холдинге - РАДИО ЗАПАДНОЙ СИБИРИ</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            min-height: 100vh;
+            width: 100%;
+        }
+        
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        
+        .header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px 15px;
+            overflow-y: auto;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 18px;
+            border-radius: 12px;
+            margin: 0 0 20px;
+            line-height: 1.4;
+            font-size: 13px;
+            border-left: 4px solid #26d0ce;
+        }
+        
+        .info-section h3 {
+            color: #1a237e;
+            margin-bottom: 12px;
+            padding-bottom: 5px;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .station-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+        }
+        
+        .station-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 12px;
+            border: 2px solid #e3f2fd;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .station-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            border-color: #26d0ce;
+        }
+        
+        .station-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .station-name {
+            font-weight: 700;
+            font-size: 13px;
+            color: #1a237e;
+            margin-bottom: 5px;
+        }
+        
+        .station-reach {
+            font-size: 11px;
+            color: #26d0ce;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .station-advantage {
+            font-size: 10px;
+            color: #666;
+            line-height: 1.3;
+        }
+        
+        .production-section {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #1a237e;
+        }
+        
+        .production-section h3 {
+            color: #1a237e;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .production-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .feature-item {
+            background: white;
+            padding: 12px 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #1a237e;
+            border: 1px solid #bbdefb;
+        }
+        
+        .feature-item i {
+            font-size: 16px;
+            margin-bottom: 5px;
+            display: block;
+            color: #26d0ce;
+        }
+        
+        .contact-info {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            padding: 18px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 13px;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .contact-info h3 {
+            color: #e65100;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px 0;
+        }
+        
+        .contact-icon {
+            font-size: 16px;
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+            color: #ff9800;
+        }
+        
+        .contact-link {
+            color: #1a237e;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .contact-link:hover {
+            text-decoration: underline;
+            color: #26d0ce;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #26d0ce, #1a2980);
+            color: white;
+            border: none;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(38, 208, 206, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #455a64, #37474f);
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                max-width: 420px;
+                margin: 0 auto;
+                min-height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ О ХОЛДИНГЕ РЗС</h1>
+            <div class="subtitle">Радио Западной Сибири | Официальный медиапартнер</div>
+        </div>
+        
+        <div class="content">
+            <div class="info-section">
+                <h3>🎙️ НАШ ХОЛДИНГ В ЦИФРАХ</h3>
+                <p><strong>Радио Западной Сибири (РЗС)</strong> — один из крупнейших медиахолдингов в Тюменской области, объединяющий 5 радиостанций с суммарным ежедневным охватом <strong>более 230 000 слушателей</strong> в Тюмени.</p>
+                <p>Ежегодно подтверждаем лидерские позиции в рейтингах Mediascope. Наши станции входят в ТОП-10 и ТОП-5 Тюмени по охвату аудитории 12+.</p>
+            </div>
+
+            <div class="info-section">
+                <h3>📻 НАШИ РАДИОСТАНЦИИ</h3>
+                <p>Каждая станция холдинга имеет уникальный профиль и целевую аудиторию:</p>
+                
+                <div class="station-grid">
+                    <div class="station-card">
+                        <div class="station-icon" style="color: #d32f2f;">⚡</div>
+                        <div class="station-name">КРАСНАЯ АРМИЯ</div>
+                        <div class="station-reach">30.3 тыс./день</div>
+                        <div class="station-advantage">Креативная и неординарная. Лояльное ядро аудитории.</div>
+                    </div>
+                    
+                    <div class="station-card">
+                        <div class="station-icon" style="color: #1a237e;">🏆</div>
+                        <div class="station-name">ЕВРОПА ПЛЮС</div>
+                        <div class="station-reach">81.7 тыс./день</div>
+                        <div class="station-advantage">Абсолютный лидер Тюмени с огромным отрывом.</div>
+                    </div>
+                    
+                    <div class="station-card">
+                        <div class="station-icon" style="color: #ff9800;">🗺️</div>
+                        <div class="station-name">ДОРОЖНОЕ РАДИО</div>
+                        <div class="station-reach">59.1 тыс./день</div>
+                        <div class="station-advantage">Охват 12 городов трёх регионов.</div>
+                    </div>
+                    
+                    <div class="station-card">
+                        <div class="station-icon" style="color: #7b1fa2;">⏰</div>
+                        <div class="station-name">РЕТРО FM</div>
+                        <div class="station-reach">44.5 тыс./день</div>
+                        <div class="station-advantage">Лояльная аудитория с 7:00 до 21:00.</div>
+                    </div>
+                    
+                    <div class="station-card" style="grid-column: span 2;">
+                        <div class="station-icon" style="color: #00796b;">🎵</div>
+                        <div class="station-name">НОВОЕ РАДИО</div>
+                        <div class="station-reach">14.5 тыс./день</div>
+                        <div class="station-advantage">Свежие новинки и хиты для молодой аудитории.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="production-section">
+                <h3>🎬 ПРОФЕССИОНАЛЬНЫЙ ПРОДАКШН</h3>
+                <p><strong>Студия производства с безупречной репутацией.</strong> Профессионалы продакшн-студии всегда качественно и оперативно (в срок не более 3 дней) производят аудиоматериалы, а также занимаются разработкой концепций для рекламных кампаний на радио.</p>
+                
+                <div class="production-features">
+                    <div class="feature-item">
+                        <i>⏱️</i>
+                        Срок — 3 дня
+                    </div>
+                    <div class="feature-item">
+                        <i>🎧</i>
+                        Проф. озвучка
+                    </div>
+                    <div class="feature-item">
+                        <i>🎵</i>
+                        Музыка и звук
+                    </div>
+                    <div class="feature-item">
+                        <i>💡</i>
+                        Концепции
+                    </div>
+                </div>
+                
+                <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
+                    Сервис по производству аудиоматериалов осуществляется не только для клиентов Тюменской области, но и Самары, Тольятти, Санкт-Петербурга и Москвы.
+                </p>
+            </div>
+
+            <div class="info-section">
+                <h3>🎯 НАШИ ПРЕИМУЩЕСТВА</h3>
+                <p><strong>1. Локальная экспертиза:</strong> Мы знаем тюменскую аудиторию лучше всех. Наши станции говорят на языке жителей Тюмени.</p>
+                <p><strong>2. Региональное покрытие:</strong> Дорожное Радио вещает в 12 городах Тюменской области, ХМАО и ЯНАО.</p>
+                <p><strong>3. Комплексные решения:</strong> От производства ролика до медиаразмещения — всё в одном месте.</p>
+                <p><strong>4. Проверенные результаты:</strong> 200+ успешных кампаний в 2024 году. Клиенты возвращаются к нам снова.</p>
+            </div>
+
+            <div class="contact-info">
+                <h3>📞 КОНТАКТЫ ДЛЯ СОТРУДНИЧЕСТВА</h3>
+                <div class="contact-item">
+                    <div class="contact-icon">📍</div>
+                    <div>Тюмень • Официальный медиапартнер</div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">📱</div>
+                    <div><a href="tel:+79220446644" class="contact-link">+7 (922) 044-66-44</a></div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">✉️</div>
+                    <div><a href="mailto:man@ya-radio.ru" class="contact-link">man@ya-radio.ru</a></div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">👤</div>
+                    <div><a href="https://t.me/AlexeyKhlistunov" target="_blank" class="contact-link">Telegram: @AlexeyKhlistunov</a></div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">🏢</div>
+                    <div>АО «Радио Западной Сибири»</div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="goToCampaign()">
+                🚀 РАССЧИТАТЬ КАМПАНИЮ
+            </button>
+            
+            <button class="btn btn-secondary" onclick="goToMain()">
+                ◀️ НА ГЛАВНУЮ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function goToCampaign() {
+            window.location.href = '/campaign.html';
+        }
+        
+        function goToMain() {
+            window.location.href = '/index.html';
+        }
+        
+        // 📱 ИНИЦИАЛИЗАЦИЯ TELEGRAM WEB APP
+        let tg = window.Telegram.WebApp;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (tg) {
+                tg.ready();
+                tg.expand();
+            }
+        });
+    </script>
+</body>
+</html>
