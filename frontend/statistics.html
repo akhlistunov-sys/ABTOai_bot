@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рейтинги Mediascope - РАДИО ЗАПАДНОЙ СИБИРИ</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            min-height: 100vh;
+            width: 100%;
+        }
+        
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        
+        .header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .header .period {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px 15px;
+            overflow-y: auto;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 0 0 20px;
+            line-height: 1.4;
+            font-size: 13px;
+            border-left: 4px solid #26d0ce;
+        }
+        
+        .info-section h3 {
+            color: #1a237e;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            border: 1px solid #e3f2fd;
+        }
+        
+        .table-header {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            color: white;
+            padding: 12px 15px;
+            font-weight: 700;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .table-scroll {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .station-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        
+        .station-table th {
+            background: #e3f2fd;
+            color: #1a237e;
+            font-weight: 700;
+            padding: 10px 8px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 2px solid #26d0ce;
+        }
+        
+        .station-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+        
+        .station-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .rzs-station {
+            background: #e8f5e9 !important;
+            font-weight: 700;
+            color: #1b5e20;
+        }
+        
+        .rzs-station:hover {
+            background: #c8e6c9 !important;
+        }
+        
+        .rzs-badge {
+            background: #4caf50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+        
+        .rank {
+            font-weight: 700;
+            color: #1a237e;
+            width: 30px;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .reach-number {
+            font-weight: 700;
+            color: #26d0ce;
+        }
+        
+        .percent {
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .advantages-section {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 18px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #1a237e;
+        }
+        
+        .advantages-section h3 {
+            color: #1a237e;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .advantage-card {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #bbdefb;
+            transition: all 0.3s ease;
+        }
+        
+        .advantage-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .advantage-title {
+            font-weight: 700;
+            font-size: 13px;
+            color: #1a237e;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .advantage-desc {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+            margin-left: 24px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #26d0ce, #1a2980);
+            color: white;
+            border: none;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(38, 208, 206, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #455a64, #37474f);
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                max-width: 420px;
+                margin: 0 auto;
+                min-height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 РЕЙТИНГИ RADIO INDEX</h1>
+            <div class="subtitle">Тюмень. Аудитория 12+</div>
+            <div class="period">Июль 2024 — Июнь 2025</div>
+        </div>
+        
+        <div class="content">
+            <div class="info-section">
+                <h3>📊 ПОЛНЫЙ РЕЙТИНГ ТЮМЕНИ</h3>
+                <p>Данные проекта <strong>Mediascope Radio Index</strong> — наиболее точное и авторитетное исследование радиорынка России.</p>
+                <p><strong>Reach Daily</strong> — среднесуточная аудитория радиостанции (тыс. человек).</p>
+                <p><strong>Reach Daily %</strong> — доля от общей аудитории радио в Тюмени.</p>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">📻 ТАБЛИЦА РЕЙТИНГОВ ТЮМЕНИ (TOP-25)</div>
+                <div class="table-scroll">
+                    <table class="station-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th>РАДИОСТАНЦИЯ</th>
+                                <th style="width: 80px;">Reach Daily</th>
+                                <th style="width: 70px;">Доля %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="rzs-station">
+                                <td><span class="rank">2</span></td>
+                                <td>ЕВРОПА ПЛЮС <span class="rzs-badge">РЗС</span></td>
+                                <td><span class="reach-number">81.7</span></td>
+                                <td><span class="reach-number">11.5</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">1</span></td>
+                                <td>Русское Радио</td>
+                                <td><span class="reach-number">65.0</span></td>
+                                <td><span class="reach-number">9.2</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr class="rzs-station">
+                                <td><span class="rank">3</span></td>
+                                <td>ДОРОЖНОЕ РАДИО <span class="rzs-badge">РЗС</span></td>
+                                <td><span class="reach-number">59.1</span></td>
+                                <td><span class="reach-number">8.4</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">4</span></td>
+                                <td>Радио Шансон</td>
+                                <td><span class="reach-number">56.7</span></td>
+                                <td><span class="reach-number">8.0</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">5</span></td>
+                                <td>Радио Дача</td>
+                                <td><span class="reach-number">55.5</span></td>
+                                <td><span class="reach-number">7.8</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">6</span></td>
+                                <td>Авторадио</td>
+                                <td><span class="reach-number">57.4</span></td>
+                                <td><span class="reach-number">8.1</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">7</span></td>
+                                <td>Маруся FM</td>
+                                <td><span class="reach-number">53.5</span></td>
+                                <td><span class="reach-number">7.6</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr class="rzs-station">
+                                <td><span class="rank">8</span></td>
+                                <td>РЕТРО FM <span class="rzs-badge">РЗС</span></td>
+                                <td><span class="reach-number">44.5</span></td>
+                                <td><span class="reach-number">6.3</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">9</span></td>
+                                <td>Юмор FM</td>
+                                <td><span class="reach-number">37.6</span></td>
+                                <td><span class="reach-number">5.3</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr class="rzs-station">
+                                <td><span class="rank">10</span></td>
+                                <td>КРАСНАЯ АРМИЯ <span class="rzs-badge">РЗС</span></td>
+                                <td><span class="reach-number">30.3</span></td>
+                                <td><span class="reach-number">4.3</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">11</span></td>
+                                <td>Хит FM</td>
+                                <td><span class="reach-number">30.6</span></td>
+                                <td><span class="reach-number">4.3</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">12</span></td>
+                                <td>Диполь FM</td>
+                                <td><span class="reach-number">30.5</span></td>
+                                <td><span class="reach-number">4.3</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">13</span></td>
+                                <td>Comedy Radio</td>
+                                <td><span class="reach-number">27.1</span></td>
+                                <td><span class="reach-number">3.8</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">14</span></td>
+                                <td>Радио Рекорд</td>
+                                <td><span class="reach-number">27.8</span></td>
+                                <td><span class="reach-number">3.9</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">15</span></td>
+                                <td>Love Radio</td>
+                                <td><span class="reach-number">23.8</span></td>
+                                <td><span class="reach-number">3.4</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">16</span></td>
+                                <td>Relax FM</td>
+                                <td><span class="reach-number">22.7</span></td>
+                                <td><span class="reach-number">3.2</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">17</span></td>
+                                <td>DFM</td>
+                                <td><span class="reach-number">20.7</span></td>
+                                <td><span class="reach-number">2.9</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">18</span></td>
+                                <td>Радио ENERGY</td>
+                                <td><span class="reach-number">20.7</span></td>
+                                <td><span class="reach-number">2.9</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">19</span></td>
+                                <td>Радио Звезда</td>
+                                <td><span class="reach-number">20.1</span></td>
+                                <td><span class="reach-number">2.8</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">20</span></td>
+                                <td>Радио 7</td>
+                                <td><span class="reach-number">18.0</span></td>
+                                <td><span class="reach-number">2.5</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">21</span></td>
+                                <td>Детское Радио</td>
+                                <td><span class="reach-number">18.0</span></td>
+                                <td><span class="reach-number">2.5</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr class="rzs-station">
+                                <td><span class="rank">22</span></td>
+                                <td>НОВОЕ РАДИО <span class="rzs-badge">РЗС</span></td>
+                                <td><span class="reach-number">14.5</span></td>
+                                <td><span class="reach-number">2.0</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank">–</span></td>
+                                <td>Другое (суммарно)</td>
+                                <td><span class="reach-number">200.2</span></td>
+                                <td><span class="reach-number">28.3</span><span class="percent">%</span></td>
+                            </tr>
+                            <tr style="background: #e3f2fd; font-weight: 700;">
+                                <td><span class="rank">∑</span></td>
+                                <td>ВСЕ СТАНЦИИ (Тюмень)</td>
+                                <td><span class="reach-number">354.1</span></td>
+                                <td><span class="reach-number">50.0</span><span class="percent">%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="advantages-section">
+                <h3>🎯 КЛЮЧЕВЫЕ ПРЕИМУЩЕСТВА СТАНЦИЙ РЗС</h3>
+                
+                <div class="advantage-card">
+                    <div class="advantage-title">
+                        <span style="color: #1a237e;">🏆</span> ЕВРОПА ПЛЮС — АБСОЛЮТНЫЙ ЛИДЕР
+                    </div>
+                    <div class="advantage-desc">
+                        Единственная радиостанция в Тюмени, которая занимает 1 место по численности ежедневной, еженедельной и ежемесячной аудитории с огромным преимуществом. Отрыв от ближайшего конкурента — более 40 000 человек ежедневно.
+                    </div>
+                </div>
+                
+                <div class="advantage-card">
+                    <div class="advantage-title">
+                        <span style="color: #ff9100;">🗺️</span> ДОРОЖНОЕ РАДИО — РЕГИОНАЛЬНОЕ ВЕЩАНИЕ
+                    </div>
+                    <div class="advantage-desc">
+                        География вещания — 12 городов Тюменской области, ХМАО и ЯНАО. Размещение рекламы обеспечивает охват аудитории трёх регионов без посредников. Входит в ТОП-3 по численности средней аудитории 15-минутного интервала.
+                    </div>
+                </div>
+                
+                <div class="advantage-card">
+                    <div class="advantage-title">
+                        <span style="color: #d32f2f;">⚡</span> КРАСНАЯ АРМИЯ — ЛОЯЛЬНОЕ ЯДРО
+                    </div>
+                    <div class="advantage-desc">
+                        Креативная и неординарная станция, входящая в ТОП-10 Тюмени. Практически не теряла аудиторию в период пандемии. Численность людей, включающих радиостанцию не реже 3-4 раз в неделю, составляет 19 800 человек.
+                    </div>
+                </div>
+                
+                <div class="advantage-card">
+                    <div class="advantage-title">
+                        <span style="color: #7b1fa2;">⏰</span> РЕТРО FM — СТАБИЛЬНАЯ АУДИТОРИЯ
+                    </div>
+                    <div class="advantage-desc">
+                        Аудитория невероятно лояльна к радиостанции, пик интереса сохраняется на протяжении всего дня (с 7:00 до 21:00). В прайм-тайм численность слушателей превышает 5 500 человек. Входит в ТОП-5 рейтинга Тюмени.
+                    </div>
+                </div>
+                
+                <div class="advantage-card">
+                    <div class="advantage-title">
+                        <span style="color: #00796b;">🎵</span> НОВОЕ РАДИО — МОЛОДЁЖНЫЙ ФОРМАТ
+                    </div>
+                    <div class="advantage-desc">
+                        Музыкальный формат — микс свежих суперновинок и любимых суперхитов от ярких и актуальных артистов. Целевая аудитория — молодые и активные слушатели, восприимчивые к новым брендам.
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="goToCampaign()">
+                🚀 НАЧАТЬ РАСЧЁТ КАМПАНИИ
+            </button>
+            
+            <button class="btn btn-secondary" onclick="goToMain()">
+                ◀️ НА ГЛАВНУЮ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function goToCampaign() {
+            window.location.href = '/campaign.html';
+        }
+        
+        function goToMain() {
+            window.location.href = '/index.html';
+        }
+        
+        // 📱 ИНИЦИАЛИЗАЦИЯ TELEGRAM WEB APP
+        let tg = window.Telegram.WebApp;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (tg) {
+                tg.ready();
+                tg.expand();
+            }
+            
+            // Подсветка станций РЗС в таблице
+            const rzsStations = ['ЕВРОПА ПЛЮС', 'ДОРОЖНОЕ РАДИО', 'КРАСНАЯ АРМИЯ', 'РЕТРО FM', 'НОВОЕ РАДИО'];
+            const tableRows = document.querySelectorAll('.station-table tbody tr');
+            
+            tableRows.forEach(row => {
+                const stationCell = row.querySelector('td:nth-child(2)');
+                if (stationCell) {
+                    const stationName = stationCell.textContent.trim();
+                    if (rzsStations.some(rzs => stationName.includes(rzs))) {
+                        row.classList.add('rzs-station');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
