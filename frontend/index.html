@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>РАДИО ЗАПАДНОЙ СИБИРИ | Тюмень</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            min-height: 100vh;
+            width: 100%;
+        }
+        
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            flex-shrink: 0;
+            border-radius: 0 0 25px 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        
+        .header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .brand-note {
+            font-size: 12px;
+            opacity: 0.7;
+            font-style: italic;
+            margin-top: 5px;
+        }
+        
+        .stats-section {
+            padding: 0 15px;
+            margin: 20px 0 15px;
+        }
+        
+        .stats-list {
+            background: white;
+            border-radius: 15px;
+            padding: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e3f2fd;
+        }
+        
+        .stat-header {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a237e;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid #26d0ce;
+            padding-bottom: 8px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: flex-start;
+            margin: 12px 0;
+            padding: 10px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            background: #e3f2fd;
+            transform: translateY(-2px);
+        }
+        
+        .stat-icon {
+            font-size: 18px;
+            margin-right: 12px;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .stat-content {
+            flex: 1;
+        }
+        
+        .stat-station {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1a237e;
+            margin-bottom: 3px;
+        }
+        
+        .stat-numbers {
+            font-weight: 600;
+            font-size: 13px;
+            color: #26d0ce;
+        }
+        
+        .stat-desc {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            line-height: 1.3;
+        }
+        
+        .data-source {
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed #eee;
+        }
+        
+        .cta-section {
+            color: #1a237e;
+            padding: 15px;
+            text-align: center;
+            margin: 0 15px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: none;
+        }
+        
+        .main-cta {
+            background: linear-gradient(135deg, #26d0ce, #1a2980);
+            color: white;
+            border: none;
+            padding: 18px 24px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            width: calc(100% - 30px);
+            margin: 0 15px 20px;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(38, 208, 206, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .main-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(38, 208, 206, 0.6);
+        }
+        
+        .cabinet-cta {
+            background: linear-gradient(135deg, #455a64, #37474f);
+            color: white;
+            border: none;
+            padding: 16px 20px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: calc(100% - 30px);
+            margin: 0 15px 25px;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(69, 90, 100, 0.3);
+        }
+        
+        .cabinet-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(69, 90, 100, 0.4);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 0 15px;
+            margin-bottom: 20px;
+        }
+        
+        .dashboard-card {
+            background: white;
+            color: #1a237e;
+            border: 2px solid #e3f2fd;
+            padding: 15px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 90px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            border-color: #26d0ce;
+        }
+        
+        .dashboard-card i {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        
+        .card-stations { 
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-color: #4caf50;
+            color: #1b5e20;
+        }
+        
+        .card-ratings { 
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            border-color: #9c27b0;
+            color: #4a148c;
+        }
+        
+        .card-about { 
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border-color: #ff9800;
+            color: #e65100;
+        }
+        
+        .card-production { 
+            background: linear-gradient(135deg, #e1f5fe, #b3e5fc);
+            border-color: #03a9f4;
+            color: #01579b;
+            grid-column: span 3;
+            margin-top: 5px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                max-width: 420px;
+                margin: 0 auto;
+                min-height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ РАДИО ЗАПАДНОЙ СИБИРИ</h1>
+            <div class="subtitle">Тюмень. Официальный медиапартнер</div>
+            <div class="brand-note">Холдинг | Производство | Медиаразмещение</div>
+        </div>
+
+        <div class="stats-section">
+            <div class="stats-list">
+                <div class="stat-header">📊 НАШ ОХВАТ В ТЮМЕНИ</div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-content">
+                        <div class="stat-station">КРАСНАЯ АРМИЯ</div>
+                        <div class="stat-numbers">30.3 тыс. слушателей ежедневно</div>
+                        <div class="stat-desc">Креативная и неординарная станция. Ядро лояльной аудитории.</div>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-content">
+                        <div class="stat-station">ЕВРОПА ПЛЮС</div>
+                        <div class="stat-numbers">81.7 тыс. слушателей ежедневно</div>
+                        <div class="stat-desc">Абсолютный лидер Тюмени. Лидирует с огромным отрывом.</div>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">🗺️</div>
+                    <div class="stat-content">
+                        <div class="stat-station">ДОРОЖНОЕ РАДИО</div>
+                        <div class="stat-numbers">59.1 тыс. слушателей ежедневно</div>
+                        <div class="stat-desc">Охват трёх регионов без посредников. География — 12 городов.</div>
+                    </div>
+                </div>
+                
+                <div class="data-source">
+                    Данные Mediascope Radio Index, Тюмень, Июль 2024 – Июнь 2025
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            🎯 Узнайте стоимость рекламной кампании<br>
+            <small>Получите точный расчёт за 2 минуты</small>
+        </div>
+
+        <button class="main-cta" onclick="showPage('campaign')">
+            🚀 РАССЧИТАТЬ СТОИМОСТЬ КАМПАНИИ
+        </button>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card card-stations" onclick="showPage('campaign')">
+                <i>📻</i>
+                НАШИ РАДИОСТАНЦИИ
+            </div>
+            
+            <div class="dashboard-card card-ratings" onclick="showPage('statistics')">
+                <i>📈</i>
+                РЕЙТИНГИ MEDIASCOPE
+            </div>
+            
+            <div class="dashboard-card card-about" onclick="showPage('about')">
+                <i>🏛️</i>
+                О ХОЛДИНГЕ
+            </div>
+            
+            <div class="dashboard-card card-production" onclick="showPage('campaign')">
+                <i>🎙️</i>
+                ПРОИЗВОДСТВО РОЛИКОВ • Срок 3 дня • Безупречная репутация
+            </div>
+        </div>
+
+        <button class="cabinet-cta" onclick="showPage('cabinet')">
+            📋 ЛИЧНЫЙ КАБИНЕТ
+        </button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        
+        function showPage(pageName) {
+            console.log('Переход на страницу:', pageName);
+            
+            switch(pageName) {
+                case 'campaign':
+                    window.location.href = '/campaign.html';
+                    break;
+                case 'statistics':
+                    window.location.href = '/statistics.html';
+                    break;
+                case 'about':
+                    window.location.href = '/about.html';
+                    break;
+                case 'cabinet':
+                    window.location.href = '/cabinet.html';
+                    break;
+            }
+            
+            if (tg && tg.expand) {
+                tg.expand();
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Главная страница РЗС загружена!');
+            
+            if (tg) {
+                tg.ready();
+                tg.expand();
+            }
+        });
+    </script>
+</body>
+</html>
