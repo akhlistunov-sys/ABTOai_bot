@@ -5,18 +5,17 @@
     <title>РЗС | Кабинет</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #F4F6F9; margin: 0; padding: 20px; }
-        .card { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 15px; border-left: 8px solid #1A237E; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .num { font-weight: 900; color: #1A237E; font-size: 20px; margin-bottom: 10px; }
-        .row { font-size: 14px; margin: 5px 0; color: #555; font-weight: 600; }
-        .btn-ex { width: 100%; padding: 18px; background: #2E7D32; color: #fff; border: none; border-radius: 12px; font-weight: 800; margin-top: 15px; font-size: 15px; }
-        .btn-home { width: 100%; padding: 18px; background: #1A237E; color: #fff; border: none; border-radius: 15px; font-weight: 800; margin-top: 30px; }
+        body { font-family: sans-serif; background: #F4F6F9; margin: 0; padding: 25px; }
+        .card { background: #fff; border-radius: 20px; padding: 25px; margin-bottom: 20px; border-left: 8px solid #1A237E; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .num { font-weight: 900; color: #1A237E; font-size: 22px; margin-bottom: 15px; }
+        .row { font-size: 15px; margin: 6px 0; color: #444; font-weight: 700; }
+        .btn { width: 100%; padding: 18px; background: #1A237E; color: #fff; border: none; border-radius: 15px; font-weight: 800; font-size: 16px; margin-top: 30px; }
     </style>
 </head>
 <body>
     <h1 style="color:#1A237E; text-align:center; font-weight:900;">МОИ КАМПАНИИ</h1>
     <div id="list">Загрузка...</div>
-    <button class="btn-home" onclick="location.href='index.html'">НА ГЛАВНУЮ</button>
+    <button class="btn" onclick="location.href='index.html'">НА ГЛАВНУЮ</button>
 
     <script>
         let tg = window.Telegram.WebApp;
@@ -26,18 +25,13 @@
             d.campaigns.forEach(c => {
                 h += `<div class="card">
                     <div class="num">#${c.campaign_number}</div>
-                    <div class="row">Дата старта: ${c.start_date}</div>
-                    <div class="row">Бюджет: ${c.final_price.toLocaleString()} ₽</div>
+                    <div class="row">Начало: ${c.start_date}</div>
+                    <div class="row">Сумма: ${c.final_price.toLocaleString()} ₽</div>
                     <div class="row">Охват: ${c.actual_reach.toLocaleString()} чел.</div>
-                    <button class="btn-ex" onclick="sendEx('${c.campaign_number}')">📊 ПОЛУЧИТЬ EXCEL</button>
                 </div>`;
             });
-            document.getElementById('list').innerHTML = h || '<div style="text-align:center; padding:50px; opacity:0.5;">У вас пока нет заказов</div>';
+            document.getElementById('list').innerHTML = h || '<div style="text-align:center; padding:50px; opacity:0.5;">Заказов пока нет</div>';
         });
-        function sendEx(n) {
-            fetch('/api/send-excel/'+n, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user_telegram_id: uid}) })
-            .then(()=>alert('Файл отправлен в ваш чат с ботом!'));
-        }
     </script>
 </body>
 </html>
