@@ -6,84 +6,84 @@
     <title>Калькулятор РЗС</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main: #1A237E; --acc: #26D0CE; --bg: #F5F5F7; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 150px; font-size: 16px; color: #333; }
-        .header { background: #fff; color: var(--main); padding: 25px; text-align: center; font-weight: 900; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        :root { --main: #1A237E; --acc: #26D0CE; --bg: #F4F4F7; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 150px; }
+        .header { background: #fff; color: var(--main); padding: 25px; text-align: center; font-weight: 900; border-bottom: 2px solid #eee; position: sticky; top:0; z-index:1000; }
         .step { display: none; padding: 20px; }
         .step.active { display: block; }
-        .card { background: #fff; border-radius: 20px; padding: 25px; margin-bottom: 15px; border: 2px solid #eee; transition: 0.2s; cursor: pointer; font-weight: 700; }
-        .card.selected { border-color: var(--main); background: #f0f2ff; box-shadow: 0 5px 15px rgba(26,35,126,0.1); }
-        .footer-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 2px solid #eee; padding: 20px; z-index: 100; box-shadow: 0 -5px 25px rgba(0,0,0,0.05); }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 15px; font-weight: 800; color: var(--main); }
-        .btn-row { display: flex; gap: 12px; }
-        .btn { flex: 1; padding: 20px; border-radius: 18px; border: none; font-weight: 900; font-size: 16px; cursor: pointer; }
+        .card { background: #fff; border-radius: 20px; padding: 25px; margin-bottom: 15px; border: 2px solid #eee; cursor: pointer; transition: 0.2s; }
+        .card.selected { border-color: var(--main); background: #f0f2ff; }
+        .footer-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 2px solid #eee; padding: 20px; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; margin-bottom: 15px; font-weight: 800; color: #555; }
+        .btn-row { display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: 900; font-size: 16px; cursor: pointer; }
         .btn-next { background: var(--main); color: #fff; }
         .btn-back { background: #E0E0E0; color: #666; }
-        .date-container { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #eee; margin-bottom: 15px; }
-        input[type="date"], input[type="number"], input[type="text"], input[type="tel"], textarea { 
-            width: 100%; padding: 20px; border: 2px solid #eee; border-radius: 15px; box-sizing: border-box; font-size: 17px; margin: 10px 0; background: #fafafa;
-        }
-        .st-reach { color: var(--acc); font-size: 13px; font-weight: 800; display: block; margin-top: 5px; }
+        input, textarea { width: 100%; padding: 18px; border: 2px solid #eee; border-radius: 15px; box-sizing: border-box; font-size: 17px; margin-bottom: 10px; background: #fafafa; }
+        .st-desc { font-size: 12px; color: #999; margin-top: 5px; font-weight: normal; }
     </style>
 </head>
 <body>
     <div class="header" id="st_title">ШАГ 1: РАДИОСТАНЦИИ</div>
     
     <div id="steps">
+        <!-- Step 1 -->
         <div id="step1" class="step active">
-            <div class="card" onclick="toggleSt('ЕВРОПА ПЛЮС', this)">ЕВРОПА ПЛЮС <span class="st-reach">81.7к чел/сут • Лидер №1</span></div>
-            <div class="card" onclick="toggleSt('ДОРОЖНОЕ РАДИО', this)">ДОРОЖНОЕ РАДИО <span class="st-reach">59.1к чел/сут • 12 городов</span></div>
-            <div class="card" onclick="toggleSt('РЕТРО FM', this)">РЕТРО FM <span class="st-reach">44.5к чел/сут • Лояльность</span></div>
-            <div class="card" onclick="toggleSt('КРАСНАЯ АРМИЯ', this)">КРАСНАЯ АРМИЯ <span class="st-reach">30.3к чел/сут • Креатив</span></div>
-            <div class="card" onclick="toggleSt('НОВОЕ РАДИО', this)">НОВОЕ РАДИО <span class="st-reach">14.5к чел/сут • Суперхиты</span></div>
+            <div class="card" onclick="toggleSt('ЕВРОПА ПЛЮС', this)">ЕВРОПА ПЛЮС <br><span class="st-desc">81.7к чел/сут • Лидер №1</span></div>
+            <div class="card" onclick="toggleSt('ДОРОЖНОЕ РАДИО', this)">ДОРОЖНОЕ РАДИО <br><span class="st-desc">59.1к чел/сут • 12 городов</span></div>
+            <div class="card" onclick="toggleSt('РЕТРО FM', this)">РЕТРО FM <br><span class="st-desc">44.5к чел/сут • Лояльность</span></div>
+            <div class="card" onclick="toggleSt('КРАСНАЯ АРМИЯ', this)">КРАСНАЯ АРМИЯ <br><span class="st-desc">30.3к чел/сут • Креатив</span></div>
+            <div class="card" onclick="toggleSt('НОВОЕ РАДИО', this)">НОВОЕ РАДИО <br><span class="st-desc">14.5к чел/сут • Суперхиты</span></div>
+            <button class="btn" onclick="selAllSt()" style="background:#FFA000; color:#fff; width:100%; margin-top:10px">ВЫБРАТЬ ВЕСЬ ХОЛДИНГ</button>
         </div>
 
+        <!-- Step 2 -->
         <div id="step2" class="step">
-            <div class="date-container">
-                <label style="font-weight:900; color:var(--main)">ДАТА СТАРТА</label>
-                <input type="date" id="start_date" onchange="updDates()">
-            </div>
-            <div class="date-container">
-                <label style="font-weight:900; color:var(--main)">ДАТА ЗАВЕРШЕНИЯ</label>
-                <input type="date" id="end_date" onchange="updDates()">
-            </div>
-            <div id="days_display" style="text-align:center; padding:20px; font-weight:900; color:var(--main); font-size:22px;">ВЫБРАНО: 0 ДНЕЙ</div>
+            <h3 style="color:var(--main)">ПЕРИОД КАМПАНИИ</h3>
+            <label>Начало:</label><input type="date" id="start_date" onchange="updDates()">
+            <label>Конец:</label><input type="date" id="end_date" onchange="updDates()">
+            <div id="days_display" style="text-align:center; padding:20px; font-weight:900; color:var(--main); font-size:22px;">0 ДНЕЙ</div>
         </div>
 
+        <!-- Step 3 -->
         <div id="step3" class="step">
-            <button class="btn btn-next" onclick="selAllSlots()" style="margin-bottom:20px; background:#FFA000; color:#fff">ВЫБРАТЬ ВСЕ 15 СЛОТОВ</button>
+            <button class="btn" onclick="selAllSlots()" style="margin-bottom:15px; background:#FFA000; color:#fff; width:100%">ВЫБРАТЬ ВСЕ 15 СЛОТОВ (-5%)</button>
             <div id="slots_container"></div>
         </div>
 
+        <!-- Step 4 -->
         <div id="step4" class="step">
-            <h3 style="text-align:center; color:var(--main); margin-bottom:30px;">ВАРИАНТ РОЛИКА</h3>
+            <h3 style="text-align:center; color:var(--main); margin-bottom:30px">ВАРИАНТ РОЛИКА</h3>
             <div class="card" onclick="setPath('text')">У МЕНЯ ЕСТЬ ТЕКСТ (НУЖНА ОЗВУЧКА)</div>
             <div class="card" onclick="setPath('audio')">У МЕНЯ ЕСТЬ ГОТОВЫЙ ФАЙЛ</div>
         </div>
 
+        <!-- Step 5 (Audio Path) -->
         <div id="step5" class="step">
-            <h3 style="color:var(--main); margin-bottom:10px;">ХРОНОМЕТРАЖ РОЛИКА</h3>
+            <h3 style="color:var(--main)">ХРОНОМЕТРАЖ РОЛИКА</h3>
             <input type="number" id="duration" value="20" min="5" max="30" oninput="upd()">
-            <p style="color:#999; font-size:14px; line-height:1.4;">Укажите длительность вашего файла в секундах. Бюджет рассчитается автоматически.</p>
+            <p style="color:#999; font-size:14px;">Укажите длительность вашего файла в секундах.</p>
         </div>
 
+        <!-- Step 6 (Text Path) -->
         <div id="step6" class="step">
-            <h3 style="color:var(--main); margin-bottom:10px;">ТЕКСТ ДЛЯ ОЗВУЧКИ</h3>
-            <textarea id="campaign_text" rows="8" placeholder="Введите текст..."></textarea>
-            <p style="color:#999; font-size:13px;">Рекомендуем до 40 слов для ролика 20 секунд.</p>
+            <h3 style="color:var(--main)">ТЕКСТ ДЛЯ ОЗВУЧКИ</h3>
+            <textarea id="campaign_text" rows="6" placeholder="Введите текст ролика..." oninput="autoTime()"></textarea>
+            <p id="auto_dur_info" style="font-weight:bold; color:var(--main)"></p>
         </div>
 
+        <!-- Step 7 (Production) -->
         <div id="step7" class="step">
-            <div class="card" onclick="setProd('standard', this)">ИНФОРМАЦИОННЫЙ — 5 000 ₽ <br><span style="font-size:12px; color:#999; font-weight:normal">Диктор, музыка, монтаж. Срок 3 дня.</span></div>
-            <div class="card" onclick="setProd('premium', this)">ВОКАЛЬНЫЙ — 12 500 ₽ <br><span style="font-size:12px; color:#999; font-weight:normal">Игровой формат, профессиональный вокал.</span></div>
-            <p style="font-size:11px; color:#999; text-align:center; padding:10px">* Цена может измениться в зависимости от диктора</p>
+            <div class="card" onclick="setProd('standard', this)">ИНФОРМАЦИОННЫЙ — 5 000 ₽ <br><span class="st-desc">Диктор, музыка, монтаж. Срок 3 дня.</span></div>
+            <div class="card" onclick="setProd('premium', this)">ВОКАЛЬНЫЙ — 12 500 ₽ <br><span class="st-desc">Профессиональный вокал, игровой формат.</span></div>
+            <p style="font-size:11px; color:#999; text-align:center">* Цена может меняться в зависимости от диктора</p>
         </div>
 
+        <!-- Step 8 (Contacts) -->
         <div id="step8" class="step">
-            <h3 style="color:var(--main); margin-bottom:20px;">КОНТАКТНЫЕ ДАННЫЕ</h3>
             <input type="text" id="contact_name" placeholder="Ваше имя">
-            <input type="text" id="company" placeholder="Название компании">
-            <input type="tel" id="phone" placeholder="Ваш телефон">
+            <input type="text" id="company" placeholder="Компания">
+            <input type="tel" id="phone" placeholder="Телефон">
         </div>
     </div>
 
@@ -91,11 +91,11 @@
         <div class="stat-grid" id="footer_stats" style="display:none;">
             <div>Бюджет: <span id="f_price">...</span></div>
             <div>Контактов: <span id="f_ots">...</span></div>
-            <div>Выходов/день: <span id="f_slots">0</span></div>
-            <div>Охват: <span id="f_rc">...</span></div>
+            <div>Охват/период: <span id="f_rc">...</span></div>
+            <div>Цена контакта: <span id="f_cpc">...</span></div>
         </div>
-        <div id="step_info" style="font-weight:900; color:var(--main); margin-bottom:15px; text-align:center; font-size:14px;">
-            ВЫБРАНО СТАНЦИЙ: <span id="st_count">0</span>
+        <div id="step_info" style="font-weight:900; color:var(--main); margin-bottom:10px; text-align:center; font-size:13px;">
+            ВЫБРАНО: <span id="st_count">0</span> СТАНЦИЙ
         </div>
         <div class="btn-row">
             <button id="back_btn" class="btn btn-back" onclick="move(-1)" style="display:none;">НАЗАД</button>
@@ -107,7 +107,7 @@
     <script>
         let tg = window.Telegram.WebApp;
         let step = 1, radios = [], slots = [], path = '', prod = 'none', days = 0;
-        let lastCalc = { final_price: 0, ots: 0, total_reach: 0 };
+        let lastRes = { final_price: 0, ots: 0, total_reach: 0, cpc: 0 };
         
         function haptic() { if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
 
@@ -116,11 +116,11 @@
             let data = { selected_radios: radios, selected_time_slots: slots, campaign_days: days, duration: dur, production_option: prod };
             fetch('/api/calculate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
             .then(r => r.json()).then(d => {
-                lastCalc = d.calculation;
+                lastRes = d.calculation;
                 document.getElementById('f_price').innerText = d.calculation.final_price.toLocaleString() + ' ₽';
                 document.getElementById('f_ots').innerText = d.calculation.ots.toLocaleString();
-                document.getElementById('f_rc').innerText = d.calculation.total_reach.toLocaleString() + ' чел.';
-                document.getElementById('f_slots').innerText = slots.length * radios.length;
+                document.getElementById('f_rc').innerText = d.calculation.total_reach.toLocaleString();
+                document.getElementById('f_cpc').innerText = d.calculation.cpc + ' ₽';
             });
         }
 
@@ -129,6 +129,12 @@
             if(i > -1) radios.splice(i,1); else radios.push(name);
             el.classList.toggle('selected');
             document.getElementById('st_count').innerText = radios.length;
+        }
+
+        function selAllSt() { 
+            radios = ["ЕВРОПА ПЛЮС","ДОРОЖНОЕ РАДИО","РЕТРО FM","КРАСНАЯ АРМИЯ","НОВОЕ РАДИО"]; 
+            document.querySelectorAll('#step1 .card').forEach(c => c.classList.add('selected'));
+            document.getElementById('st_count').innerText = 5;
         }
 
         function updDates() {
@@ -141,7 +147,7 @@
         }
 
         function loadSlots() {
-            const labels = ["06:00 Подъем","07:00 Трафик 🚀","08:00 Пик 🚀","09:00 Работа 🚀","10:00 Работа","11:00 Офис","12:00 Обед","13:00 Обед","14:00 День","15:00 День","16:00 Конец дня","17:00 Вечер 🚀","18:00 Пик 🚀","19:00 Дом","20:00 Отдых"];
+            const labels = ["06-07 Подъем (4%)","07-08 Трафик (12%)","08-09 Пик (15%)","09-10 Работа (10%)","10-11 Работа (7%)","11-12 Работа (6%)","12-13 Обед (8%)","13-14 Обед (7%)","14-15 День (5%)","15-16 День (6%)","16-17 Конец дня (7%)","17-18 Вечер (10%)","18-19 Вечер (8%)","19-20 Дом (3%)","20-21 Отдых (2%)"];
             let html = '';
             labels.forEach((l, i) => {
                 let sel = slots.includes(i) ? 'selected' : '';
@@ -150,24 +156,26 @@
             document.getElementById('slots_container').innerHTML = html;
         }
 
-        function toggleSlot(i, el) { haptic(); let idx = slots.indexOf(i); if(idx > -1) slots.splice(idx,1); else slots.push(i); el.classList.toggle('selected'); }
-
-        function selAllSlots() { slots = Array.from({length:15},(_,i)=>i); loadSlots(); }
+        function toggleSlot(i, el) { haptic(); let idx = slots.indexOf(i); if(idx > -1) slots.splice(idx,1); else slots.push(i); el.classList.toggle('selected'); upd(); }
+        function selAllSlots() { slots = Array.from({length:15},(_,i)=>i); loadSlots(); upd(); }
         function setPath(p) { haptic(); path = p; move(1); }
-        function setProd(p, el) { 
-            haptic(); prod = p; 
-            document.querySelectorAll('#step7 .card').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected'); upd(); move(1); 
+        function autoTime() { 
+            let words = document.getElementById('campaign_text').value.trim().split(/\s+/).length;
+            let dur = Math.max(10, Math.min(30, Math.ceil(words / 2.5)));
+            document.getElementById('duration').value = dur;
+            document.getElementById('auto_dur_info').innerText = `Примерный хронометраж: ${dur} сек.`;
+            upd(); 
         }
+        function setProd(p, el) { haptic(); prod = p; document.querySelectorAll('#step7 .card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); upd(); move(1); }
 
         function move(dir) {
             haptic();
-            if(step === 1 && radios.length === 0 && dir > 0) return alert('Выберите радио!');
+            if(step === 1 && radios.length === 0 && dir > 0) return alert('Выберите радиостанции!');
             if(step === 8 && dir > 0) return submit();
 
             document.getElementById('step'+step).classList.remove('active');
             if(step === 4 && dir > 0) step = (path === 'text') ? 6 : 5;
-            else if (step === 5 && dir > 0) { step = 8; upd(); }
+            else if (step === 5 && dir > 0) step = 8;
             else if (step === 6 && dir > 0) step = 7;
             else if (step === 7 && dir < 0) step = 6;
             else if (step === 8 && dir < 0) step = (path === 'text') ? 7 : 5;
@@ -176,10 +184,9 @@
             document.getElementById('step'+step).classList.add('active');
             document.getElementById('back_btn').style.display = (step > 1) ? 'block' : 'none';
             document.getElementById('home_btn').style.display = (step === 1) ? 'block' : 'none';
-            document.getElementById('next_btn').innerText = step === 8 ? 'ОТПРАВИТЬ' : 'ДАЛЕЕ';
             document.getElementById('st_title').innerText = "ШАГ " + step;
             
-            document.getElementById('footer_stats').style.display = (step >= 5 && step < 8) ? 'grid' : 'none';
+            document.getElementById('footer_stats').style.display = (step >= 5) ? 'grid' : 'none';
             document.getElementById('step_info').style.display = (step < 5) ? 'block' : 'none';
             
             if(step === 3) loadSlots();
@@ -187,23 +194,20 @@
         }
 
         function submit() {
+            let btn = document.getElementById('next_btn'); btn.innerText = "ОТПРАВКА..."; btn.disabled = true;
             let data = {
                 user_id: tg.initDataUnsafe?.user?.id || 123,
                 selected_radios: radios, selected_time_slots: slots,
-                start_date: document.getElementById('start_date').value,
-                end_date: document.getElementById('end_date').value,
+                start_date: document.getElementById('start_date').value, end_date: document.getElementById('end_date').value,
                 campaign_days: days, duration: document.getElementById('duration').value,
                 campaign_text: document.getElementById('campaign_text').value,
-                production_option: prod,
-                contact_name: document.getElementById('contact_name').value,
-                company: document.getElementById('company').value,
-                phone: document.getElementById('phone').value,
-                final_price: lastCalc.final_price, total_reach: lastCalc.total_reach, ots: lastCalc.ots
+                production_option: prod, contact_name: document.getElementById('contact_name').value,
+                company: document.getElementById('company').value, phone: document.getElementById('phone').value,
+                final_price: lastRes.final_price, total_reach: lastRes.total_reach, ots: lastRes.ots, cpc: lastRes.cpc
             };
             fetch('/api/create-campaign', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
             .then(r => r.json()).then(d => { if(d.success) location.href='/confirmation.html?campaign='+d.campaign_number; });
         }
-        window.onload = () => { tg.expand(); };
     </script>
 </body>
 </html>
