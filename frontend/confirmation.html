@@ -2,24 +2,23 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Заявка принята</title>
+    <title>Успех</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 40px 20px; background: #f5f7fa; }
-        .icon { font-size: 60px; color: #2E7D32; margin-bottom: 20px; }
-        .num { font-size: 24px; font-weight: 800; color: #1A237E; margin: 20px 0; }
-        .btn { background: #1A237E; color: #fff; padding: 15px 30px; border: none; border-radius: 12px; width: 100%; font-weight: 700; }
+        body { font-family: sans-serif; text-align: center; padding: 60px 20px; background: #F4F6F9; }
+        .check { width: 100px; height: 100px; background: #2E7D32; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 50px; margin: 0 auto 30px; }
+        .num { font-size: 28px; font-weight: 900; color: #1A237E; margin: 20px 0; }
+        .btn { background: #1A237E; color: #fff; padding: 22px; border: none; border-radius: 18px; width: 100%; font-weight: 900; font-size: 18px; }
     </style>
 </head>
 <body>
-    <div class="icon">✓</div>
-    <h2>ЗАЯВКА ПРИНЯТА!</h2>
-    <div class="num" id="c_num">#R-000000</div>
-    <p>Менеджер свяжется с вами в течение 24 часов для подтверждения деталей.</p>
+    <div class="check">✓</div>
+    <h2 style="font-weight:900;">ЗАЯВКА ПРИНЯТА!</h2>
+    <div class="num" id="cn">#R-000000</div>
+    <p style="font-size:16px; color:#666; margin-bottom:40px;">Медиаплан в формате Excel уже отправлен в ваш чат. Менеджер свяжется с вами в ближайшее время.</p>
     <button class="btn" onclick="location.href='cabinet.html'">ПЕРЕЙТИ В КАБИНЕТ</button>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        document.getElementById('c_num').innerText = '#' + urlParams.get('campaign');
+        document.getElementById('cn').innerText = '#' + new URLSearchParams(window.location.search).get('campaign');
     </script>
 </body>
 </html>
