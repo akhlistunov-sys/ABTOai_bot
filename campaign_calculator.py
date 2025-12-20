@@ -14,7 +14,7 @@ STATION_DATA = {
 # Коэффициенты скидок за количество станций
 PRICE_TIERS = {1: 1.0, 2: 0.95, 3: 0.90, 4: 0.85, 5: 0.80}
 
-# Временные слоты с весами охвата (в долях от суточного)
+# Временные слоты с весами охвата (согласно суточной динамике)
 TIME_SLOTS_DATA = [
     {"time": "06:00-07:00", "label": "Подъем", "weight": 0.06},
     {"time": "07:00-08:00", "label": "Утренний пик", "weight": 0.12},
@@ -43,51 +43,49 @@ def format_number(num):
 
 def calculate_campaign_price_and_reach(user_data):
     try:
-        duration = user_data.get("duration", 20)
-        days = user_data.get("campaign_days", 30)
+        duration = int(user_data.get("duration", 20))
+        days = int(user_data.get("campaign_days", 30))
         selected_radios = user_data.get("selected_radios", [])
         selected_slots = user_data.get("selected_time_slots", [])
         
         if not selected_radios or not selected_slots:
             return 0, 0, 7000, 0, 0, 0, 0, 0
 
-        # 1. Расчет стоимости эфира
+        # 1. Расчет стоимости
         total_air_cost = 0
         num_stations = len(selected_radios)
         station_discount = PRICE_TIERS.get(num_stations, 0.8)
 
         for radio in selected_radios:
             station_price_sec = STATION_DATA.get(radio, {"price": 50})["price"]
+            # Исправленная формула (была опечатка в переменной)
             cost_per_spot = duration * station_price_sec
             total_air_cost += cost_per_spot * len(selected_slots) * days
 
-        # Применяем скидку за объем станций
         total_air_cost = int(total_air_cost * station_discount)
         
-        # Скидка за 15 слотов (Максимальный охват)
         if len(selected_slots) == 15:
-            total_air_cost = int(total_air_cost * 0.95)
+            total_air_cost = int(total_air_cost * 0.95) # Доп скидка за полный пакет слотов
 
-        # 2. Производство
         prod_key = user_data.get("production_option")
         prod_cost = PRODUCTION_OPTIONS.get(prod_key, {"price": 0})["price"]
-
         final_price = max(total_air_cost + prod_cost, 7000)
 
-        # 3. Честный расчет охвата (Коэффициент уникальности 0.7)
+        # 2. Честный расчет охвата (Коэффициент 0.7)
         total_reach_daily_gross = 0
         for radio in selected_radios:
             base_reach = STATION_DATA.get(radio, {"reach": 0})["reach"] * 1000
             for slot_idx in selected_slots:
-                weight = TIME_SLOTS_DATA[slot_idx]["weight"]
-                total_reach_daily_gross += (base_reach * weight)
+                if 0 <= slot_idx < len(TIME_SLOTS_DATA):
+                    weight = TIME_SLOTS_DATA[slot_idx]["weight"]
+                    total_reach_daily_gross += (base_reach * weight)
 
-        # Уникальный охват в день (убираем пересечения)
+        # Уникальный охват (очистка от пересечений)
         unique_daily_reach = int(total_reach_daily_gross * 0.7)
-        # Общий охват за период (с учетом накопления, упрощенно)
-        total_reach_period = int(unique_daily_reach * (1 + (days * 0.05))) # коэффициент накопления
+        # Прогрессивный охват за период
+        total_reach_period = int(unique_daily_reach * (1 + (days * 0.04))) 
 
         return total_air_cost + prod_cost, 0, final_price, total_reach_period, unique_daily_reach, len(selected_slots) * num_stations, 0, 0
     except Exception as e:
-        logger.error(f"Error in calculation: {e}")
+        logger.error(f"Calculation Error: {e}")
         return 0, 0, 7000, 0, 0, 0, 0, 0
