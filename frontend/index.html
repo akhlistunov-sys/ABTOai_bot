@@ -6,33 +6,43 @@
     <title>РЗС МЕДИА</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main: #1A237E; --acc: #26D0CE; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, var(--main), #283593); color: #fff; margin: 0; min-height: 100vh; }
-        .hero { padding: 40px 20px; text-align: center; }
-        .card { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); border-radius: 25px; padding: 25px; margin: 20px; border: 1px solid rgba(255,255,255,0.2); }
-        h1 { font-size: 26px; margin: 0; font-weight: 800; }
-        .st-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .btn-main { background: #fff; color: var(--main); border: none; width: calc(100% - 40px); margin: 0 20px; padding: 22px; border-radius: 15px; font-size: 18px; font-weight: 800; }
-        .info-text { font-size: 14px; opacity: 0.9; line-height: 1.6; margin: 15px 0; }
+        :root { --main: #1A237E; --acc: #26D0CE; --bg: #F5F5F7; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #333; margin: 0; padding: 0; }
+        .header { background: #fff; padding: 40px 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { width: 180px; margin-bottom: 20px; }
+        .card { background: #fff; border-radius: 25px; padding: 30px; margin: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        h1 { color: var(--main); font-size: 24px; margin: 0; font-weight: 900; }
+        .btn-main { background: var(--main); color: #fff; border: none; width: calc(100% - 40px); margin: 0 20px; padding: 25px; border-radius: 20px; font-size: 18px; font-weight: 900; box-shadow: 0 10px 20px rgba(26,35,126,0.2); }
+        .grid-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 20px; }
+        .sub-btn { background: #fff; border: 2px solid #eee; padding: 15px; border-radius: 15px; font-weight: 800; color: var(--main); font-size: 14px; }
+        .info { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 20px; text-align: center; }
     </style>
 </head>
 <body>
-    <div class="hero">
+    <div class="header">
+        <img src="https://github.com/akhlistunov-sys/ABTOai_bot/raw/main/LOGO.png" class="logo">
         <h1>РАДИО ЗАПАДНОЙ СИБИРИ</h1>
-        <div class="info-text">
-            <b>Лидер Тюменского эфира.</b> Пакетное размещение рекламы.<br>
-            12 городов вещания • Более 230 000 слушателей в сутки.<br>
-            Профессиональный продакшн. Запуск за 24 часа.
-        </div>
     </div>
     <div class="card">
-        <div class="st-row"><span>ЕВРОПА ПЛЮС</span><span style="color:var(--acc); font-weight:800">81.7к</span></div>
-        <div class="st-row"><span>ДОРОЖНОЕ РАДИО</span><span style="color:var(--acc); font-weight:800">59.1к</span></div>
-        <div class="st-row"><span>РЕТРО FM</span><span style="color:var(--acc); font-weight:800">44.5к</span></div>
-        <div class="st-row"><span>КРАСНАЯ АРМИЯ</span><span style="color:var(--acc); font-weight:800">30.3к</span></div>
-        <div class="st-row"><span>НОВОЕ РАДИО</span><span style="color:var(--acc); font-weight:800">14.5к</span></div>
+        <div class="info">
+            <b>Медиахолдинг №1 в Тюмени.</b><br>
+            Единственное размещение в 12 городах области без посредников. <br>
+            Охват более 230 000 слушателей ежедневно.
+        </div>
+        <div style="font-weight:900; text-align:center; font-size:22px; color:var(--acc)">> 12 000 000</div>
+        <div style="text-align:center; font-size:12px; color:#999">рекламных контактов ежемесячно</div>
     </div>
-    <button class="btn-main" onclick="location.href='campaign.html'">СОЗДАТЬ МЕДИАПЛАН</button>
-    <button onclick="location.href='cabinet.html'" style="display:block; width:100%; background:transparent; border:none; color:#fff; font-weight:bold; margin-top:25px; font-size:16px;">ЛИЧНЫЙ КАБИНЕТ</button>
+    <button class="btn-main" onclick="location.href='campaign.html'">РАССЧИТАТЬ МЕДИАПЛАН</button>
+    <div class="grid-nav">
+        <button class="sub-btn" onclick="location.href='cabinet.html'">КАБИНЕТ</button>
+        <button class="sub-btn" onclick="location.href='statistics.html'">РЕЙТИНГИ</button>
+        <button class="sub-btn" style="grid-column: span 2;" onclick="showContacts()">КОНТАКТЫ</button>
+    </div>
+    <script>
+        function showContacts() {
+            alert("Александра Васильева\nРуководитель отдела рекламы\n+7 (3452) 68-82-12\nalexandra@rzs.ru");
+        }
+        window.Telegram.WebApp.expand();
+    </script>
 </body>
 </html>
