@@ -4,7 +4,7 @@ from flask_cors import CORS
 from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from campaign_calculator import calculate_campaign_price_and_reach
+from campaign_calculator import calculate_campaign_price_and_reach, STATION_DATA, TIME_SLOTS_DATA
 
 app = Flask(__name__)
 CORS(app)
@@ -19,40 +19,71 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, campaign_number TEXT,
         radio_stations TEXT, start_date TEXT, end_date TEXT, campaign_days INTEGER,
         time_slots TEXT, campaign_text TEXT, production_option TEXT,
-        contact_name TEXT, company TEXT, phone TEXT,
-        duration INTEGER, final_price INTEGER, actual_reach INTEGER, ots INTEGER,
-        cost_per_contact REAL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
-    conn.commit()
+        contact_name TEXT, company TEXT, phone TEXT, email TEXT,
+        duration INTEGER, final_price INTEGER, actual_reach INTEGER, ots INTEGER)""")
     conn.close()
 
-def create_excel(row):
-    wb = Workbook(); ws = wb.active; ws.title = "Медиаплан РЗС"
-    blue = PatternFill(start_color="1A237E", end_color="1A237E", fill_type="solid")
+def create_excel_report(row):
+    wb = Workbook(); ws = wb.active; ws.title = "Медиаплан"
+    blue_fill = PatternFill(start_color="1A237E", end_color="1A237E", fill_type="solid")
+    gray_fill = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+    white_font = Font(color="FFFFFF", bold=True)
+    bold_font = Font(bold=True)
+    
+    # 1. Header
     ws.merge_cells("A1:C1")
-    ws["A1"] = f"МЕДИАПЛАН РЕКЛАМНОЙ КАМПАНИИ #{row['campaign_number']}"
-    ws["A1"].fill = blue; ws["A1"].font = Font(color="FFFFFF", bold=True, size=14)
-    ws["A1"].alignment = Alignment(horizontal="center")
+    ws["A1"] = f"МЕДИАПЛАН КАМПАНИИ #{row['campaign_number']}"
+    ws["A1"].fill = blue_fill; ws["A1"].font = white_font; ws["A1"].alignment = Alignment(horizontal="center")
     
-    data = [
-        ("Радиостанции", row['radio_stations']),
-        ("Период размещения", f"{row['start_date']} - {row['end_date']} ({row['campaign_days']} дн.)"),
-        ("Хронометраж", f"{row['duration']} сек."),
-        ("Рекламные контакты (OTS)", f"{row.get('ots', 0):,}"),
-        ("Общий охват (период)", f"{row['actual_reach']:,} чел."),
-        ("Стоимость 1 контакта", f"{row.get('cost_per_contact', 0)} руб."),
-        ("ИТОГО К ОПЛАТЕ", f"{row['final_price']:,} руб.")
-    ]
-    for r_idx, (k, v) in enumerate(data, 3):
-        ws.cell(row=r_idx, column=1, value=k).font = Font(bold=True)
-        ws.cell(row=r_idx, column=2, value=v)
+    ws.merge_cells("A2:C2")
+    ws["A2"] = "РАДИО ЗАПАДНОЙ СИБИРИ | ТЮМЕНЬ"; ws["A2"].alignment = Alignment(horizontal="center")
     
-    ws["A11"] = "ТЕКСТ / СЦЕНАРИЙ РОЛИКА:"; ws["A11"].font = Font(bold=True, color="1A237E")
-    txt = row.get('campaign_text') or "Материал заказчика"
-    for i, line in enumerate(textwrap.wrap(txt, 70), 12):
-        ws.cell(row=i, column=1, value=line)
+    ws["A4"] = "✅ Ваша заявка принята! Спасибо за доверие!"; ws["A4"].font = bold_font
 
-    ws["A20"] = "Ваш менеджер: Александра Васильева"; ws["A21"] = "Телефон: +7 (3452) 68-82-12"
+    # 2. Параметры
+    ws["A6"] = "📊 ПАРАМЕТРЫ КАМПАНИИ:"; ws["A6"].font = bold_font
+    params = [
+        (f"• Радиостанции: {row['radio_stations']}", ""),
+        (f"• Период: {row['start_date']} - {row['end_date']} ({row['campaign_days']} дней)", ""),
+        (f"• Выходов в день: {int(len(row['time_slots'].split(',')) * len(row['radio_stations'].split(',')))}", ""),
+        (f"• Всего выходов: {int(len(row['time_slots'].split(',')) * len(row['radio_stations'].split(',')) * row['campaign_days'])}", ""),
+        (f"• Хронометраж: {row['duration']} сек", ""),
+        (f"• Производство: {row['production_option'].upper()}", "")
+    ]
+    for p in params: ws.append(p)
+
+    # 3. Станции
+    ws.append([]); ws.append(["📻 ВЫБРАННЫЕ РАДИОСТАНЦИИ:"]); ws.cell(ws.max_row, 1).font = bold_font
+    for r in row['radio_stations'].split(','):
+        ws.append([f"• {r}: ~{STATION_DATA[r]['reach']*1000:,} слушателей"])
+
+    # 4. Слоты
+    ws.append([]); ws.append(["🕒 ВЫБРАННЫЕ ВРЕМЕННЫЕ СЛОТЫ:"]); ws.cell(ws.max_row, 1).font = bold_font
+    for s_idx in map(int, row['time_slots'].split(',')):
+        s = TIME_SLOTS_DATA[s_idx]
+        ws.append([f"• {s['time']} - {s['label']}"])
+
+    # 5. Охват
+    ws.append([]); ws.append(["🎯 РАСЧЕТНЫЙ ОХВАТ:"]); ws.cell(ws.max_row, 1).font = bold_font
+    ws.append([f"• Ежедневный охват: ~{int(row['actual_reach']*0.7):,} чел."])
+    ws.append([f"• Общий охват за период: ~{row['actual_reach']:,} чел."])
+    ws.append([f"• Рекламных контактов (OTS): {row.get('ots', 0):,}"])
+
+    # 6. Финансы
+    ws.append([]); ws.append(["💰 ФИНАНСОВАЯ ИНФОРМАЦИЯ:"]); ws.cell(ws.max_row, 1).font = bold_font
+    ws.append(["Позиция", "Сумма (₽)"])
+    ws.append(["Эфирное время", row['final_price'] - (5000 if "standard" in row['production_option'] else 12500 if "vocal" in row['production_option'] else 0)])
+    ws.append(["ИТОГО", row['final_price']])
+    ws.cell(ws.max_row, 1).font = bold_font; ws.cell(ws.max_row, 2).font = bold_font
+
+    # 7. Контакты
+    ws.append([]); ws.append(["👤 ВАШИ КОНТАКТЫ:"]); ws.cell(ws.max_row, 1).font = bold_font
+    ws.append([f"• Имя: {row['contact_name']}"]); ws.append([f"• Телефон: {row['phone']}"]); ws.append([f"• Компания: {row['company']}"])
     
+    ws.append([]); ws.append(["📞 НАШИ КОНТАКТЫ:"]); ws.cell(ws.max_row, 1).font = bold_font
+    ws.append(["• Email: alexandra@rzs.ru"]); ws.append(["• Менеджер: Александра Васильева"])
+
+    for col in ['A', 'B']: ws.column_dimensions[col].width = 40
     out = io.BytesIO(); wb.save(out); out.seek(0)
     return out
 
@@ -66,7 +97,7 @@ def static_files(path): return send_from_directory('frontend', path)
 def calc():
     res = calculate_campaign_price_and_reach(request.json)
     return jsonify({"success":True, "calculation": {
-        "final_price": res[2], "total_reach": res[3], "daily_coverage": res[4], "spots": res[5], "ots": res[6], "cpc": res[7]
+        "final_price": res[2], "total_reach": res[3], "daily_coverage": res[4], "spots": res[5], "ots": res[6], "bonus": res[1]
     }})
 
 @app.route('/api/create-campaign', methods=['POST'])
@@ -74,20 +105,22 @@ def create():
     init_db(); d = request.json; c_num = f"R-{datetime.now().strftime('%H%M%S')}"
     conn = sqlite3.connect(DB_PATH)
     conn.execute("""INSERT INTO campaigns (user_id, campaign_number, radio_stations, start_date, end_date, 
-        campaign_days, time_slots, campaign_text, production_option, contact_name, company, phone, 
-        duration, final_price, actual_reach, ots, cost_per_contact) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        campaign_days, time_slots, campaign_text, production_option, contact_name, company, phone, email, 
+        duration, final_price, actual_reach, ots) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (d.get('user_id'), c_num, ",".join(d.get('selected_radios')), d.get('start_date'), d.get('end_date'), 
          d.get('campaign_days'), ",".join(map(str, d.get('selected_time_slots'))), d.get('campaign_text'), 
-         d.get('production_option'), d.get('contact_name'), d.get('company'), d.get('phone'), 
-         d.get('duration'), d.get('final_price'), d.get('total_reach'), d.get('ots'), d.get('cpc')))
+         d.get('production_option'), d.get('contact_name'), d.get('company'), d.get('phone'), d.get('email'), 
+         d.get('duration'), d.get('final_price'), d.get('total_reach'), d.get('ots')))
     conn.commit(); conn.close()
     
-    # Отправка Excel
-    try:
-        excel = create_excel(d); excel.name = f"Mediaplan_{c_num}.xlsx"
-        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument", 
-            files={'document': (excel.name, excel)}, data={'chat_id': d.get('user_id'), 'caption': f'Ваш медиаплан {c_num} готов!'})
-    except: pass
+    # Авто-отправка Excel
+    row_dict = d.copy(); row_dict['campaign_number'] = c_num
+    row_dict['time_slots'] = ",".join(map(str, d.get('selected_time_slots')))
+    row_dict['radio_stations'] = ",".join(d.get('selected_radios'))
+    excel = create_excel_report(row_dict)
+    requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument", 
+        files={'document': (f'Mediaplan_{c_num}.xlsx', excel)}, 
+        data={'chat_id': d.get('user_id'), 'caption': f'Ваш медиаплан {c_num} готов!'})
     
     return jsonify({"success":True, "campaign_number": c_num})
 
@@ -97,16 +130,10 @@ def history(user_id):
     rows = conn.execute("SELECT * FROM campaigns WHERE user_id = ? ORDER BY id DESC", (user_id,)).fetchall()
     return jsonify({"success":True, "campaigns": [dict(r) for r in rows]})
 
-@app.route('/api/send-excel/<num>', methods=['POST'])
-def send_ex(num):
-    uid = request.json.get('user_telegram_id')
-    conn = sqlite3.connect(DB_PATH); conn.row_factory = sqlite3.Row
+@app.route('/api/confirmation/<num>')
+def conf(num):
+    init_db(); conn = sqlite3.connect(DB_PATH); conn.row_factory = sqlite3.Row
     row = conn.execute("SELECT * FROM campaigns WHERE campaign_number = ?", (num,)).fetchone()
-    if row:
-        excel = create_excel(dict(row)); excel.name = f"Mediaplan_{num}.xlsx"
-        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument", 
-            files={'document': (excel.name, excel)}, data={'chat_id': uid})
-        return jsonify({"success":True})
-    return jsonify({"success":False})
+    return jsonify({"success":True, "campaign": dict(row)}) if row else jsonify({"success":False})
 
 if __name__ == '__main__': init_db(); app.run(host='0.0.0.0', port=5000)
