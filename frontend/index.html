@@ -2,44 +2,40 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>РЗС МЕДИА</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main: #1A237E; --glass: rgba(255, 255, 255, 0.15); }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1A237E, #283593); color: #fff; margin: 0; min-height: 100vh; }
+        :root { --main: #1A237E; --acc: #26D0CE; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, var(--main), #283593); color: #fff; margin: 0; min-height: 100vh; }
         .hero { padding: 40px 20px; text-align: center; }
-        .hero h1 { font-size: 24px; letter-spacing: 1px; margin: 0; }
-        .hero p { opacity: 0.8; font-size: 14px; margin-top: 10px; }
-        .container { padding: 0 20px 40px; }
-        .glass-card { background: var(--glass); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 25px; margin: 20px; border: 1px solid rgba(255,255,255,0.2); }
+        h1 { font-size: 26px; margin: 0; font-weight: 800; }
         .st-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .st-name { font-weight: bold; }
-        .st-val { color: #26D0CE; font-weight: 800; }
-        .btn-main { background: #fff; color: var(--main); border: none; width: 100%; padding: 20px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .footer-ticker { text-align: center; font-size: 11px; opacity: 0.7; margin-top: 20px; }
+        .btn-main { background: #fff; color: var(--main); border: none; width: calc(100% - 40px); margin: 0 20px; padding: 22px; border-radius: 15px; font-size: 18px; font-weight: 800; }
+        .info-text { font-size: 14px; opacity: 0.9; line-height: 1.5; margin: 15px 0; }
     </style>
 </head>
 <body>
     <div class="hero">
         <h1>РАДИО ЗАПАДНОЙ СИБИРИ</h1>
-        <p>Медиахолдинг Тюмени. Пакетное размещение рекламы.</p>
-    </div>
-    <div class="container">
-        <div class="glass-card">
-            <div class="st-row"><span>ЕВРОПА ПЛЮС</span><span class="st-val">81.7к чел/день</span></div>
-            <div class="st-row"><span>ДОРОЖНОЕ РАДИО</span><span class="st-val">59.1к чел/день</span></div>
-            <div class="st-row"><span>РЕТРО FM</span><span class="st-val">44.5к чел/день</span></div>
-            <div class="st-row"><span>КРАСНАЯ АРМИЯ</span><span class="st-val">30.3к чел/день</span></div>
-            <div class="st-row"><span>НОВОЕ РАДИО</span><span class="st-val">14.5к чел/день</span></div>
+        <div class="info-text">
+            Официальный медиапартнер холдинга в Тюмени. <br>
+            <b>12 городов вещания</b> • <b>230 000 слушателей ежедневно</b> <br>
+            Собственный продакшн-центр с безупречной репутацией.
         </div>
-        <button class="btn-main" onclick="location.href='campaign.html'">РАССЧИТАТЬ КАМПАНИЮ</button>
-        <div style="display:flex; gap:10px; margin-top:15px;">
-            <button onclick="location.href='cabinet.html'" style="flex:1; padding:15px; border-radius:12px; border:1px solid #fff; background:transparent; color:#fff; font-weight:bold;">КАБИНЕТ</button>
-            <button onclick="location.href='statistics.html'" style="flex:1; padding:15px; border-radius:12px; border:1px solid #fff; background:transparent; color:#fff; font-weight:bold;">РЕЙТИНГИ</button>
-        </div>
-        <div class="footer-ticker">Данные Mediascope Radio Index, Тюмень 2024-2025. 1 контакт от 0.04 ₽</div>
     </div>
-    <script>window.Telegram.WebApp.expand();</script>
+    <div class="card">
+        <div class="st-row"><span>ЕВРОПА ПЛЮС</span><span style="color:var(--acc); font-weight:800">81.7к</span></div>
+        <div class="st-row"><span>ДОРОЖНОЕ РАДИО</span><span style="color:var(--acc); font-weight:800">59.1к</span></div>
+        <div class="st-row"><span>РЕТРО FM</span><span style="color:var(--acc); font-weight:800">44.5к</span></div>
+        <div class="st-row"><span>КРАСНАЯ АРМИЯ</span><span style="color:var(--acc); font-weight:800">30.3к</span></div>
+        <div class="st-row"><span>НОВОЕ РАДИО</span><span style="color:var(--acc); font-weight:800">14.5к</span></div>
+    </div>
+    <button class="btn-main" onclick="location.href='campaign.html'">СОЗДАТЬ МЕДИАПЛАН</button>
+    <div style="display:flex; gap:10px; padding:20px;">
+        <button onclick="location.href='cabinet.html'" style="flex:1; padding:15px; border-radius:12px; border:1px solid #fff; background:transparent; color:#fff; font-weight:bold;">КАБИНЕТ</button>
+        <button onclick="window.open('https://rzs.ru')" style="flex:1; padding:15px; border-radius:12px; border:1px solid #fff; background:transparent; color:#fff; font-weight:bold;">О САЙТЕ</button>
+    </div>
 </body>
 </html>
