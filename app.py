@@ -21,11 +21,14 @@ def init_db():
         time_slots TEXT, campaign_text TEXT, production_option TEXT,
         contact_name TEXT, company TEXT, phone TEXT, email TEXT,
         duration INTEGER, final_price INTEGER, actual_reach INTEGER, ots INTEGER)""")
+    conn.commit()
     conn.close()
 
 def create_pro_excel(row):
     wb = Workbook(); ws = wb.active; ws.title = "Медиаплан"
     blue = PatternFill(start_color="1A237E", end_color="1A237E", fill_type="solid")
+    border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+    
     ws.merge_cells("A1:C1")
     ws["A1"] = f"МЕДИАПЛАН РЗС ТЮМЕНЬ #{row['campaign_number']}"
     ws["A1"].fill = blue; ws["A1"].font = Font(color="FFFFFF", bold=True, size=14)
@@ -34,18 +37,22 @@ def create_pro_excel(row):
     headers = [
         ("Радиостанции", row['radio_stations']),
         ("Период", f"{row['start_date']} - {row['end_date']} ({row['campaign_days']} дн.)"),
-        ("Хронометраж", f"{row['duration']} сек."),
-        ("Рекламных контактов", f"{row.get('ots', 0):,}"),
+        ("Рекламных контактов (OTS)", f"{row.get('ots', 0):,}"),
+        ("Суточный охват (чел)", f"{int(row['actual_reach']*0.7):,}"),
+        ("Общий охват (чел)", f"{row['actual_reach']:,}"),
         ("ИТОГО К ОПЛАТЕ", f"{row['final_price']:,} руб.")
     ]
     for r_idx, (k, v) in enumerate(headers, 3):
         ws.cell(row=r_idx, column=1, value=k).font = Font(bold=True)
-        ws.cell(row=r_idx, column=2, value=v)
+        ws.cell(row=r_idx, column=1).border = border
+        ws.cell(row=r_idx, column=2, value=v).border = border
     
-    ws["A9"] = "ТЕКСТ / СЦЕНАРИЙ:"; ws["A9"].font = Font(bold=True)
-    txt = row.get('campaign_text') if row.get('campaign_text') else "Материал предоставляется заказчиком"
-    for i, line in enumerate(textwrap.wrap(txt, 70), 10): ws.cell(row=i, column=1, value=line)
+    ws["A10"] = "СЦЕНАРИЙ / ТЕКСТ РОЛИКА:"; ws["A10"].font = Font(bold=True)
+    txt = row.get('campaign_text') or "Материал заказчика"
+    for i, line in enumerate(textwrap.wrap(txt, 70), 11):
+        ws.cell(row=i, column=1, value=line)
     
+    ws.column_dimensions['A'].width = 30; ws.column_dimensions['B'].width = 45
     out = io.BytesIO(); wb.save(out); out.seek(0)
     return out
 
@@ -75,11 +82,11 @@ def create():
          d.get('duration'), d.get('final_price'), d.get('total_reach'), d.get('ots')))
     conn.commit(); conn.close()
     
-    # Авто-отправка Excel в Telegram
+    # Авто-отправка Excel
     try:
-        excel = create_pro_excel(d)
+        excel = create_pro_excel(d); excel.name = f"Mediaplan_{c_num}.xlsx"
         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument", 
-            files={'document': (f'Mediaplan_{c_num}.xlsx', excel)}, 
+            files={'document': (excel.name, excel)}, 
             data={'chat_id': d.get('user_id'), 'caption': f'Ваш медиаплан {c_num} готов!'})
     except: pass
     
