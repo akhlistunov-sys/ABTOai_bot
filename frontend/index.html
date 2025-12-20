@@ -8,9 +8,9 @@
     <style>
         :root { --main: #1A237E; --acc: #26D0CE; --bg: #F5F5F7; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        .header { background: #fff; padding: 30px 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .logo { width: 140px; margin-bottom: 15px; }
-        .card { background: #fff; border-radius: 25px; padding: 25px; margin: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .header { background: #fff; padding: 40px 20px; text-align: center; border-bottom: 2px solid #eee; }
+        .logo { width: 150px; margin-bottom: 15px; }
+        .card { background: #fff; border-radius: 25px; padding: 30px; margin: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eee; }
         h1 { color: var(--main); font-size: 20px; margin: 0; font-weight: 900; }
         .st-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         .btn-main { background: var(--main); color: #fff; border: none; width: calc(100% - 40px); margin: 0 20px; padding: 22px; border-radius: 20px; font-size: 18px; font-weight: 900; }
@@ -34,7 +34,8 @@
     <button class="btn-main" onclick="location.href='campaign.html'">РАССЧИТАТЬ МЕДИАПЛАН</button>
     <div class="nav-grid">
         <button class="sub-btn" onclick="location.href='cabinet.html'">ЛИЧНЫЙ КАБИНЕТ</button>
-        <button class="sub-btn" onclick="location.href='contacts.html'">КОНТАКТЫ</button>
+        <button class="sub-btn" onclick="location.href='statistics.html'">СТАТИСТИКА</button>
+        <button class="sub-btn" style="grid-column: span 2;" onclick="location.href='contacts.html'">КОНТАКТЫ</button>
     </div>
     <script>window.Telegram.WebApp.expand();</script>
 </body>
