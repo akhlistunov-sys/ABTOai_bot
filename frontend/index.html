@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>РЗС</title>
+    <title>РЗС МЕДИА</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main: #1A237E; --acc: #26D0CE; --bg: #F4F4F7; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: #333; }
-        .header { background: #fff; padding: 40px 20px; text-align: center; border-bottom: 2px solid #eee; }
-        .logo { width: 160px; margin-bottom: 20px; }
-        .card { background: #fff; border-radius: 25px; padding: 30px; margin: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        h1 { color: var(--main); font-size: 22px; margin: 0; font-weight: 900; letter-spacing: 1px; }
-        .btn-main { background: var(--main); color: #fff; border: none; width: calc(100% - 40px); margin: 0 20px; padding: 25px; border-radius: 20px; font-size: 18px; font-weight: 900; }
-        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
-        .sub-btn { background: #fff; border: 2px solid #eee; padding: 15px; border-radius: 15px; font-weight: 800; color: var(--main); }
+        :root { --main: #1A237E; --acc: #26D0CE; --bg: #F5F5F7; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        .header { background: #fff; padding: 30px 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { width: 140px; margin-bottom: 15px; }
+        .card { background: #fff; border-radius: 25px; padding: 25px; margin: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        h1 { color: var(--main); font-size: 20px; margin: 0; font-weight: 900; }
+        .st-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .btn-main { background: var(--main); color: #fff; border: none; width: calc(100% - 40px); margin: 0 20px; padding: 22px; border-radius: 20px; font-size: 18px; font-weight: 900; }
+        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 20px; }
+        .sub-btn { background: #fff; border: 2px solid #eee; padding: 15px; border-radius: 15px; font-weight: 800; color: var(--main); font-size: 13px; }
     </style>
 </head>
 <body>
@@ -23,15 +24,16 @@
         <h1>РАДИО ЗАПАДНОЙ СИБИРИ</h1>
     </div>
     <div class="card">
-        <p style="font-size:15px; line-height:1.6; color:#666; text-align:center; margin:0">
-            Официальный медиапартнер в Тюмени. <br>
-            <b>12 городов вещания</b> • <b>>230 000 слушателей</b> <br>
-            Размещение рекламы без посредников.
-        </p>
+        <h3 style="margin-top:0; color:var(--main)">📊 НАШ ОХВАТ В ТЮМЕНИ</h3>
+        <div class="st-row"><span>ЕВРОПА ПЛЮС</span><span style="color:var(--acc); font-weight:800">81 700 чел.</span></div>
+        <div class="st-row"><span>ДОРОЖНОЕ РАДИО</span><span style="color:var(--acc); font-weight:800">59 100 чел.</span></div>
+        <div class="st-row"><span>РЕТРО FM</span><span style="color:var(--acc); font-weight:800">44 500 чел.</span></div>
+        <div class="st-row"><span>КРАСНАЯ АРМИЯ</span><span style="color:var(--acc); font-weight:800">30 300 чел.</span></div>
+        <div class="st-row"><span>НОВОЕ РАДИО</span><span style="color:var(--acc); font-weight:800">14 500 чел.</span></div>
     </div>
     <button class="btn-main" onclick="location.href='campaign.html'">РАССЧИТАТЬ МЕДИАПЛАН</button>
     <div class="nav-grid">
-        <button class="sub-btn" onclick="location.href='cabinet.html'">КАБИНЕТ</button>
+        <button class="sub-btn" onclick="location.href='cabinet.html'">ЛИЧНЫЙ КАБИНЕТ</button>
         <button class="sub-btn" onclick="location.href='contacts.html'">КОНТАКТЫ</button>
     </div>
     <script>window.Telegram.WebApp.expand();</script>
