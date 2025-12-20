@@ -26,7 +26,8 @@ def init_db():
 def create_excel_report(row):
     wb = Workbook(); ws = wb.active; ws.title = "Медиаплан"
     blue_fill = PatternFill(start_color="1A237E", end_color="1A237E", fill_type="solid")
-    white_font = Font(color="FFFFFF", bold=True); bold_font = Font(bold=True)
+    white_font = Font(color="FFFFFF", bold=True)
+    bold_font = Font(bold=True)
     
     ws.merge_cells("A1:C1")
     ws["A1"] = f"МЕДИАПЛАН КАМПАНИИ #{row['campaign_number']}"
@@ -59,8 +60,11 @@ def create_excel_report(row):
     ws.append(["ИТОГО", row['final_price']]); ws.cell(ws.max_row, 1).font = bold_font
 
     ws.append([]); ws.append(["👤 ВАШИ КОНТАКТЫ:"]); ws.cell(ws.max_row, 1).font = bold_font
-    ws.append([f"• Имя: {row['contact_name']}"]); ws.append([f"• Телефон: {row['phone']}"])
+    ws.append([f"• Имя: {row['contact_name']}"]); ws.append([f"• Телефон: {row['phone']}"]); ws.append([f"• Компания: {row['company']}"])
     
+    ws.append([]); ws.append(["📞 НАШИ КОНТАКТЫ:"]); ws.cell(ws.max_row, 1).font = bold_font
+    ws.append(["• Email: alexandra@rzs.ru"]); ws.append(["• Менеджер: Александра Васильева"])
+
     for col in ['A', 'B']: ws.column_dimensions[col].width = 45
     out = io.BytesIO(); wb.save(out); out.seek(0); return out
 
