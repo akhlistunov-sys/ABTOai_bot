@@ -21,71 +21,48 @@ def init_db():
         time_slots TEXT, campaign_text TEXT, production_option TEXT,
         contact_name TEXT, company TEXT, phone TEXT, email TEXT,
         duration INTEGER, final_price INTEGER, actual_reach INTEGER, ots INTEGER)""")
-    conn.close()
+    conn.commit(); conn.close()
 
 def create_excel_report(row):
     wb = Workbook(); ws = wb.active; ws.title = "Медиаплан"
     blue_fill = PatternFill(start_color="1A237E", end_color="1A237E", fill_type="solid")
-    gray_fill = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
-    white_font = Font(color="FFFFFF", bold=True)
-    bold_font = Font(bold=True)
+    white_font = Font(color="FFFFFF", bold=True); bold_font = Font(bold=True)
     
-    # 1. Header
     ws.merge_cells("A1:C1")
     ws["A1"] = f"МЕДИАПЛАН КАМПАНИИ #{row['campaign_number']}"
     ws["A1"].fill = blue_fill; ws["A1"].font = white_font; ws["A1"].alignment = Alignment(horizontal="center")
-    
-    ws.merge_cells("A2:C2")
-    ws["A2"] = "РАДИО ЗАПАДНОЙ СИБИРИ | ТЮМЕНЬ"; ws["A2"].alignment = Alignment(horizontal="center")
-    
+    ws.merge_cells("A2:C2"); ws["A2"] = "РАДИО ЗАПАДНОЙ СИБИРИ | ТЮМЕНЬ"; ws["A2"].alignment = Alignment(horizontal="center")
     ws["A4"] = "✅ Ваша заявка принята! Спасибо за доверие!"; ws["A4"].font = bold_font
 
-    # 2. Параметры
     ws["A6"] = "📊 ПАРАМЕТРЫ КАМПАНИИ:"; ws["A6"].font = bold_font
-    params = [
-        (f"• Радиостанции: {row['radio_stations']}", ""),
-        (f"• Период: {row['start_date']} - {row['end_date']} ({row['campaign_days']} дней)", ""),
-        (f"• Выходов в день: {int(len(row['time_slots'].split(',')) * len(row['radio_stations'].split(',')))}", ""),
-        (f"• Всего выходов: {int(len(row['time_slots'].split(',')) * len(row['radio_stations'].split(',')) * row['campaign_days'])}", ""),
-        (f"• Хронометраж: {row['duration']} сек", ""),
-        (f"• Производство: {row['production_option'].upper()}", "")
-    ]
-    for p in params: ws.append(p)
-
-    # 3. Станции
+    ws.append([f"• Радиостанции: {row['radio_stations']}"])
+    ws.append([f"• Период: {row['start_date']} - {row['end_date']} ({row['campaign_days']} дней)"])
+    ws.append([f"• Выходов в день: {len(row['time_slots'].split(',')) * len(row['radio_stations'].split(','))}"])
+    ws.append([f"• Хронометраж: {row['duration']} сек"])
+    
     ws.append([]); ws.append(["📻 ВЫБРАННЫЕ РАДИОСТАНЦИИ:"]); ws.cell(ws.max_row, 1).font = bold_font
     for r in row['radio_stations'].split(','):
         ws.append([f"• {r}: ~{STATION_DATA[r]['reach']*1000:,} слушателей"])
 
-    # 4. Слоты
     ws.append([]); ws.append(["🕒 ВЫБРАННЫЕ ВРЕМЕННЫЕ СЛОТЫ:"]); ws.cell(ws.max_row, 1).font = bold_font
     for s_idx in map(int, row['time_slots'].split(',')):
         s = TIME_SLOTS_DATA[s_idx]
         ws.append([f"• {s['time']} - {s['label']}"])
 
-    # 5. Охват
     ws.append([]); ws.append(["🎯 РАСЧЕТНЫЙ ОХВАТ:"]); ws.cell(ws.max_row, 1).font = bold_font
     ws.append([f"• Ежедневный охват: ~{int(row['actual_reach']*0.7):,} чел."])
     ws.append([f"• Общий охват за период: ~{row['actual_reach']:,} чел."])
     ws.append([f"• Рекламных контактов (OTS): {row.get('ots', 0):,}"])
 
-    # 6. Финансы
     ws.append([]); ws.append(["💰 ФИНАНСОВАЯ ИНФОРМАЦИЯ:"]); ws.cell(ws.max_row, 1).font = bold_font
     ws.append(["Позиция", "Сумма (₽)"])
-    ws.append(["Эфирное время", row['final_price'] - (5000 if "standard" in row['production_option'] else 12500 if "vocal" in row['production_option'] else 0)])
-    ws.append(["ИТОГО", row['final_price']])
-    ws.cell(ws.max_row, 1).font = bold_font; ws.cell(ws.max_row, 2).font = bold_font
+    ws.append(["ИТОГО", row['final_price']]); ws.cell(ws.max_row, 1).font = bold_font
 
-    # 7. Контакты
     ws.append([]); ws.append(["👤 ВАШИ КОНТАКТЫ:"]); ws.cell(ws.max_row, 1).font = bold_font
-    ws.append([f"• Имя: {row['contact_name']}"]); ws.append([f"• Телефон: {row['phone']}"]); ws.append([f"• Компания: {row['company']}"])
+    ws.append([f"• Имя: {row['contact_name']}"]); ws.append([f"• Телефон: {row['phone']}"])
     
-    ws.append([]); ws.append(["📞 НАШИ КОНТАКТЫ:"]); ws.cell(ws.max_row, 1).font = bold_font
-    ws.append(["• Email: alexandra@rzs.ru"]); ws.append(["• Менеджер: Александра Васильева"])
-
-    for col in ['A', 'B']: ws.column_dimensions[col].width = 40
-    out = io.BytesIO(); wb.save(out); out.seek(0)
-    return out
+    for col in ['A', 'B']: ws.column_dimensions[col].width = 45
+    out = io.BytesIO(); wb.save(out); out.seek(0); return out
 
 @app.route('/')
 def index(): return send_from_directory('frontend', 'index.html')
@@ -113,7 +90,6 @@ def create():
          d.get('duration'), d.get('final_price'), d.get('total_reach'), d.get('ots')))
     conn.commit(); conn.close()
     
-    # Авто-отправка Excel
     row_dict = d.copy(); row_dict['campaign_number'] = c_num
     row_dict['time_slots'] = ",".join(map(str, d.get('selected_time_slots')))
     row_dict['radio_stations'] = ",".join(d.get('selected_radios'))
