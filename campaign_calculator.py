@@ -1,13 +1,13 @@
 import logging
 logger = logging.getLogger(__name__)
 
-# Цены / 3. Охват Mediascope 2024-2025.
+# Данные RZS 2024-2025. Цены / 3.
 STATION_DATA = {
-    "ЕВРОПА ПЛЮС": {"reach": 81.7, "price": 33.00, "aqh": 6.1, "target": "Активные профи 25-45 лет"},
-    "ДОРОЖНОЕ РАДИО": {"reach": 59.1, "price": 18.67, "aqh": 4.5, "target": "Семья и водители 30-55 лет"},
-    "РЕТРО FM": {"reach": 44.5, "price": 17.00, "aqh": 3.8, "target": "Ценители хитов 35-60 лет"},
-    "КРАСНАЯ АРМИЯ": {"reach": 30.3, "price": 16.67, "aqh": 2.2, "target": "Молодёжь и креатив 18-35 лет"},
-    "НОВОЕ РАДИО": {"reach": 14.5, "price": 17.67, "aqh": 1.4, "target": "Драйвовая аудитория 20-40 лет"}
+    "ЕВРОПА ПЛЮС": {"reach": 81.7, "price": 33.00, "aqh": 6.1, "target": "Активные профи 25-45 лет", "desc": "Абсолютный лидер Тюмени с огромным отрывом. Радио №1 для активной и платежеспособной аудитории."},
+    "ДОРОЖНОЕ РАДИО": {"reach": 59.1, "price": 18.67, "aqh": 4.5, "target": "Семья и водители 30-55 лет", "desc": "Крупнейшая сеть вещания. Единственный охват 12 городов Тюменской области, ХМАО и ЯНАО в одном эфире."},
+    "РЕТРО FM": {"reach": 44.5, "price": 17.00, "aqh": 3.8, "target": "Ценители хитов 35-60 лет", "desc": "Золотой фонд мировой музыки. Невероятно лояльная аудитория со стабильным слушанием в течение всего дня."},
+    "КРАСНАЯ АРМИЯ": {"reach": 30.3, "price": 16.67, "aqh": 2.2, "target": "Молодёжь и креатив 18-35 лет", "desc": "«Первое городское». Креативный и дерзкий голос Тюмени с уникальным локальным контентом."},
+    "НОВОЕ РАДИО": {"reach": 14.5, "price": 17.67, "aqh": 1.4, "target": "Драйвовая аудитория 20-40 лет", "desc": "Территория суперхитов. Самые свежие новинки и актуальные артисты для молодой аудитории."}
 }
 
 PRICE_TIERS = {1: 1.0, 2: 0.95, 3: 0.90, 4: 0.85, 5: 0.80}
@@ -40,9 +40,9 @@ def calculate_campaign_price_and_reach(data):
         
         if not radios or not slots: return 0, 0, 7000, 0, 0, 0, 0, 0
 
-        # 1. Бюджет
-        base_sec = sum(STATION_DATA[r]["price"] for r in radios)
-        air_cost = base_sec * duration * len(slots) * days * PRICE_TIERS.get(len(radios), 0.8)
+        # Бюджет эфира
+        sum_price = sum(STATION_DATA[r]["price"] for r in radios)
+        air_cost = sum_price * duration * len(slots) * days * PRICE_TIERS.get(len(radios), 0.8)
         
         applied_discount = 0
         if len(slots) == 15:
@@ -52,13 +52,13 @@ def calculate_campaign_price_and_reach(data):
         p_costs = {"standard": 5000, "vocal": 12500, "none": 0}
         total_price = max(int(air_cost) + p_costs.get(prod_option, 0), 7000)
 
-        # 2. Охват
+        # Охват (0.7)
         st_reach_sum = sum(STATION_DATA[r]["reach"] * 1000 for r in radios)
         slot_weight_sum = sum(TIME_SLOTS_DATA[i]["weight"] for i in slots)
         daily_unique = int(st_reach_sum * slot_weight_sum * 0.7)
         total_reach = int(daily_unique * (1 + (days * 0.035)))
 
-        # 3. OTS
+        # OTS
         avg_aqh = sum(STATION_DATA[r]["aqh"] * 1000 for r in radios)
         total_ots = int(avg_aqh * len(slots) * days)
 
