@@ -30,20 +30,22 @@
     
     <div id="steps">
         <div id="step1" class="step active">
-            <div class="card" onclick="toggleSt('ЕВРОПА ПЛЮС', this)">ЕВРОПА ПЛЮС <br><span class="st-reach">~81 700 чел/день</span><br><span class="st-target">🎯 Активные профи 25-45 лет</span></div>
-            <div class="card" onclick="toggleSt('ДОРОЖНОЕ РАДИО', this)">ДОРОЖНОЕ РАДИО <br><span class="st-reach">~59 100 чел/день</span><br><span class="st-target">🎯 Семья и водители 30-55 лет</span></div>
-            <div class="card" onclick="toggleSt('РЕТРО FM', this)">РЕТРО FM <br><span class="st-reach">~44 500 чел/день</span><br><span class="st-target">🎯 Ценители хитов 35-60 лет</span></div>
-            <div class="card" onclick="toggleSt('КРАСНАЯ АРМИЯ', this)">КРАСНАЯ АРМИЯ <br><span class="st-reach">~30 300 чел/день</span><br><span class="st-target">🎯 Молодёжь и креатив 18-35 лет</span></div>
-            <div class="card" onclick="toggleSt('НОВОЕ РАДИО', this)">НОВОЕ РАДИО <br><span class="st-reach">~14 500 чел/день</span><br><span class="st-target">🎯 Драйвовая аудитория 20-40 лет</span></div>
-            <button class="btn" onclick="selAllSt()" style="background:#FFA000; color:#fff; width:100%; margin-top:10px">ВЫБРАТЬ ВСЕ РАДИО</button>
+            <div class="card" onclick="toggleSt('ЕВРОПА ПЛЮС', this)">ЕВРОПА ПЛЮС <br><span class="st-reach">~81 700 чел/день</span><br><span class="st-target">🎯 Активные профи 25-45 лет</span><br><small style="font-weight:normal; color:#666">Абсолютный лидер Тюмени с огромным отрывом.</small></div>
+            <div class="card" onclick="toggleSt('ДОРОЖНОЕ РАДИО', this)">ДОРОЖНОЕ РАДИО <br><span class="st-reach">~59 100 чел/день</span><br><span class="st-target">🎯 Семья и водители 30-55 лет</span><br><small style="font-weight:normal; color:#666">Крупнейшая сеть вещания. Охват 12 городов области.</small></div>
+            <div class="card" onclick="toggleSt('РЕТРО FM', this)">РЕТРО FM <br><span class="st-reach">~44 500 чел/день</span><br><span class="st-target">🎯 Ценители хитов 35-60 лет</span><br><small style="font-weight:normal; color:#666">Золотой фонд музыки. Максимально лояльная аудитория.</small></div>
+            <div class="card" onclick="toggleSt('КРАСНАЯ АРМИЯ', this)">КРАСНАЯ АРМИЯ <br><span class="st-reach">~30 300 чел/день</span><br><span class="st-target">🎯 Молодёжь и креатив 18-35 лет</span><br><small style="font-weight:normal; color:#666">«Первое городское». Креативный и дерзкий голос Тюмени.</small></div>
+            <div class="card" onclick="toggleSt('НОВОЕ РАДИО', this)">НОВОЕ РАДИО <br><span class="st-reach">~14 500 чел/день</span><br><span class="st-target">🎯 Драйвовая аудитория 20-40 лет</span><br><small style="font-weight:normal; color:#666">Территория суперхитов. Самые свежие новинки.</small></div>
+            <button class="btn" onclick="selAllSt()" style="background:#FFA000; color:#fff; width:100%; margin-top:10px">✅ ВЫБРАТЬ ВСЕ РАДИОСТАНЦИИ</button>
         </div>
 
         <div id="step2" class="step">
-            <label style="font-weight:900; color:var(--main)">🗓️ ДАТА НАЧАЛА КАМПАНИИ:</label>
-            <input type="date" id="start_date" onchange="updDates()">
-            <label style="font-weight:900; color:var(--main); margin-top:15px; display:block">🗓️ ДАТА ОКОНЧАНИЯ КАМПАНИИ:</label>
-            <input type="date" id="end_date" onchange="updDates()">
-            <div id="days_display" style="text-align:center; padding:20px; font-weight:900; color:var(--main); font-size:22px;">0 ДНЕЙ</div>
+            <div style="background:#fff; padding:20px; border-radius:20px; border:2px solid #eee">
+                <label style="font-weight:900; color:var(--main)">🗓️ ДАТА НАЧАЛА КАМПАНИИ:</label>
+                <input type="date" id="start_date" onchange="updDates()">
+                <label style="font-weight:900; color:var(--main); margin-top:20px; display:block">🗓️ ДАТА ОКОНЧАНИЯ КАМПАНИИ:</label>
+                <input type="date" id="end_date" onchange="updDates()">
+            </div>
+            <div id="days_display" style="text-align:center; padding:30px; font-weight:900; color:var(--main); font-size:22px;">0 ДНЕЙ</div>
         </div>
 
         <div id="step3" class="step">
@@ -57,7 +59,7 @@
         </div>
 
         <div id="step4" class="step">
-            <h3 style="text-align:center; color:var(--main)">ВАРИАНТ РОЛИКА</h3>
+            <h3 style="text-align:center; color:var(--main); margin-bottom:30px">ВАРИАНТ РОЛИКА</h3>
             <div class="card" onclick="setPath('text')">У МЕНЯ ЕСТЬ ТЕКСТ (НУЖНА ОЗВУЧКА)</div>
             <div class="card" onclick="setPath('audio')">У МЕНЯ ЕСТЬ ГОТОВЫЙ ФАЙЛ</div>
         </div>
@@ -65,6 +67,7 @@
         <div id="step5" class="step">
             <h3 style="color:var(--main)">ХРОНОМЕТРАЖ (СЕК)</h3>
             <input type="number" id="duration" value="20" min="5" max="30" oninput="upd()">
+            <p style="color:#999; font-size:14px;">Бюджет рассчитается автоматически после ввода секунд.</p>
         </div>
 
         <div id="step6" class="step">
@@ -95,7 +98,7 @@
         <div class="stat-grid" id="footer_stats" style="display:none;">
             <div>Бюджет: <span id="f_price">0 ₽</span></div>
             <div>Контактов: <span id="f_ots">0</span></div>
-            <div>Охват/сут: <span id="f_rd">0</span></div>
+            <div>Выходов/день: <span id="f_spots">0</span></div>
             <div>Охват/период: <span id="f_rc">0</span></div>
         </div>
         <div id="step_info" style="font-weight:900; color:var(--main); margin-bottom:10px; text-align:center; font-size:14px;">
@@ -122,8 +125,8 @@
                 lastCalc = d.calculation;
                 document.getElementById('f_price').innerText = d.calculation.final_price.toLocaleString() + ' ₽';
                 document.getElementById('f_ots').innerText = d.calculation.ots.toLocaleString();
-                document.getElementById('f_rd').innerText = d.calculation.daily_coverage.toLocaleString();
                 document.getElementById('f_rc').innerText = d.calculation.total_reach.toLocaleString();
+                document.getElementById('f_spots').innerText = slots.length * radios.length;
                 document.getElementById('bonus_msg').style.display = (slots.length === 15) ? 'block' : 'none';
             });
         }
@@ -146,7 +149,7 @@
             let e = new Date(document.getElementById('end_date').value);
             if(s && e && e >= s) {
                 days = Math.ceil((e - s) / (1000*60*60*24)) + 1;
-                document.getElementById('days_display').innerText = `${days} ДНЕЙ`;
+                document.getElementById('days_display').innerText = `ИТОГО: ${days} ДНЕЙ`;
             }
         }
 
