@@ -1,91 +1,58 @@
 import logging
-
 logger = logging.getLogger(__name__)
 
-# АКТУАЛЬНЫЕ ДАННЫЕ MEDIASCOPE (Тюмень, Июль 2024 - Июнь 2025)
+# АКТУАЛЬНЫЕ ДАННЫЕ MEDIASCOPE (Тюмень 2024-2025)
+# Цены делены на 3 от исходных
 STATION_DATA = {
-    "КРАСНАЯ АРМИЯ": {"reach": 30.3, "price": 50, "share": 4.3},
-    "ЕВРОПА ПЛЮС": {"reach": 81.7, "price": 99, "share": 11.5},
-    "ДОРОЖНОЕ РАДИО": {"reach": 59.1, "price": 56, "share": 8.4},
-    "РЕТРО FM": {"reach": 44.5, "price": 51, "share": 6.3},
-    "НОВОЕ РАДИО": {"reach": 14.5, "price": 53, "share": 2.0}
+    "КРАСНАЯ АРМИЯ": {"reach": 30.3, "price": 16.67, "aqh": 2.1},
+    "ЕВРОПА ПЛЮС": {"reach": 81.7, "price": 33.00, "aqh": 5.8},
+    "ДОРОЖНОЕ РАДИО": {"reach": 59.1, "price": 18.67, "aqh": 4.2},
+    "РЕТРО FM": {"reach": 44.5, "price": 17.00, "aqh": 3.5},
+    "НОВОЕ РАДИО": {"reach": 14.5, "price": 17.67, "aqh": 1.2}
 }
 
-# Коэффициенты скидок за количество станций
 PRICE_TIERS = {1: 1.0, 2: 0.95, 3: 0.90, 4: 0.85, 5: 0.80}
 
-# Временные слоты с весами охвата (согласно суточной динамике)
 TIME_SLOTS_DATA = [
-    {"time": "06:00-07:00", "label": "Подъем", "weight": 0.06},
-    {"time": "07:00-08:00", "label": "Утренний пик", "weight": 0.12},
-    {"time": "08:00-09:00", "label": "Максимум трафика", "weight": 0.15},
-    {"time": "09:00-10:00", "label": "Начало дня", "weight": 0.09},
-    {"time": "10:00-11:00", "label": "Работа", "weight": 0.07},
-    {"time": "11:00-12:00", "label": "Работа", "weight": 0.06},
-    {"time": "12:00-13:00", "label": "Обед", "weight": 0.05},
-    {"time": "13:00-14:00", "label": "Обед", "weight": 0.05},
-    {"time": "14:00-15:00", "label": "День", "weight": 0.05},
-    {"time": "15:00-16:00", "label": "День", "weight": 0.06},
-    {"time": "16:00-17:00", "label": "Завершение дня", "weight": 0.08},
-    {"time": "17:00-18:00", "label": "Вечерний пик", "weight": 0.12},
-    {"time": "18:00-19:00", "label": "Вечерний пик", "weight": 0.10},
-    {"time": "19:00-20:00", "label": "Вечер", "weight": 0.04},
-    {"time": "20:00-21:00", "label": "Отдых", "weight": 0.04}
+    {"time": "06:00-07:00", "weight": 0.06}, {"time": "07:00-08:00", "weight": 0.12},
+    {"time": "08:00-09:00", "weight": 0.15}, {"time": "09:00-10:00", "weight": 0.09},
+    {"time": "10:00-11:00", "weight": 0.07}, {"time": "11:00-12:00", "weight": 0.06},
+    {"time": "12:00-13:00", "weight": 0.05}, {"time": "13:00-14:00", "weight": 0.05},
+    {"time": "14:00-15:00", "weight": 0.05}, {"time": "15:00-16:00", "weight": 0.06},
+    {"time": "16:00-17:00", "weight": 0.08}, {"time": "17:00-18:00", "weight": 0.12},
+    {"time": "18:00-19:00", "weight": 0.10}, {"time": "19:00-20:00", "weight": 0.04},
+    {"time": "20:00-21:00", "weight": 0.04}
 ]
 
-PRODUCTION_OPTIONS = {
-    "standard": {"price": 2000, "name": "СТАНДАРТНЫЙ РОЛИК"},
-    "premium": {"price": 5000, "name": "ПРЕМИУМ РОЛИК"}
-}
-
-def format_number(num):
-    return f"{num:,.0f}".replace(",", " ")
-
-def calculate_campaign_price_and_reach(user_data):
+def calculate_campaign_price_and_reach(data):
     try:
-        duration = int(user_data.get("duration", 20))
-        days = int(user_data.get("campaign_days", 30))
-        selected_radios = user_data.get("selected_radios", [])
-        selected_slots = user_data.get("selected_time_slots", [])
+        radios = data.get("selected_radios", [])
+        slots = data.get("selected_time_slots", [])
+        days = int(data.get("campaign_days", 1))
+        duration = int(data.get("duration", 20))
         
-        if not selected_radios or not selected_slots:
-            return 0, 0, 7000, 0, 0, 0, 0, 0
+        if not radios or not slots: return 0, 0, 7000, 0, 0, 0, 0, 0
 
-        # 1. Расчет стоимости
-        total_air_cost = 0
-        num_stations = len(selected_radios)
-        station_discount = PRICE_TIERS.get(num_stations, 0.8)
-
-        for radio in selected_radios:
-            station_price_sec = STATION_DATA.get(radio, {"price": 50})["price"]
-            # Исправленная формула (была опечатка в переменной)
-            cost_per_spot = duration * station_price_sec
-            total_air_cost += cost_per_spot * len(selected_slots) * days
-
-        total_air_cost = int(total_air_cost * station_discount)
+        # Расчет бюджета
+        base_sec_total = sum(STATION_DATA[r]["price"] for r in radios)
+        air_cost = int(base_sec_total * duration * len(slots) * days * PRICE_TIERS.get(len(radios), 0.8))
         
-        if len(selected_slots) == 15:
-            total_air_cost = int(total_air_cost * 0.95) # Доп скидка за полный пакет слотов
+        # Скидка 5% при выборе всех 15 слотов
+        if len(slots) == 15: air_cost = int(air_cost * 0.95)
 
-        prod_key = user_data.get("production_option")
-        prod_cost = PRODUCTION_OPTIONS.get(prod_key, {"price": 0})["price"]
-        final_price = max(total_air_cost + prod_cost, 7000)
+        prod_costs = {"standard": 2000, "premium": 5000, "none": 0}
+        total_price = max(air_cost + prod_costs.get(data.get("production_option", "none"), 0), 7000)
 
-        # 2. Честный расчет охвата (Коэффициент 0.7)
-        total_reach_daily_gross = 0
-        for radio in selected_radios:
-            base_reach = STATION_DATA.get(radio, {"reach": 0})["reach"] * 1000
-            for slot_idx in selected_slots:
-                if 0 <= slot_idx < len(TIME_SLOTS_DATA):
-                    weight = TIME_SLOTS_DATA[slot_idx]["weight"]
-                    total_reach_daily_gross += (base_reach * weight)
+        # Честный охват 0.7 (Уникальные слушатели)
+        daily_gross = sum(STATION_DATA[r]["reach"] * 1000 for r in radios) * sum(TIME_SLOTS_DATA[i]["weight"] for i in slots)
+        unique_daily = int(daily_gross * 0.7)
+        total_reach = int(unique_daily * (1 + (days * 0.035))) # Накопительный охват за период
 
-        # Уникальный охват (очистка от пересечений)
-        unique_daily_reach = int(total_reach_daily_gross * 0.7)
-        # Прогрессивный охват за период
-        total_reach_period = int(unique_daily_reach * (1 + (days * 0.04))) 
+        # Контакты (OTS)
+        avg_aqh = sum(STATION_DATA[r]["aqh"] * 1000 for r in radios) / len(radios)
+        total_ots = int(avg_aqh * len(radios) * len(slots) * days)
 
-        return total_air_cost + prod_cost, 0, final_price, total_reach_period, unique_daily_reach, len(selected_slots) * num_stations, 0, 0
+        return air_cost, 0, total_price, total_reach, unique_daily, len(radios)*len(slots), total_ots, 0
     except Exception as e:
-        logger.error(f"Calculation Error: {e}")
+        logger.error(f"Calc error: {e}")
         return 0, 0, 7000, 0, 0, 0, 0, 0
