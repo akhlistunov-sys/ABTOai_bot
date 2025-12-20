@@ -19,40 +19,40 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, campaign_number TEXT,
         radio_stations TEXT, start_date TEXT, end_date TEXT, campaign_days INTEGER,
         time_slots TEXT, campaign_text TEXT, production_option TEXT,
-        contact_name TEXT, company TEXT, phone TEXT, email TEXT,
-        duration INTEGER, final_price INTEGER, actual_reach INTEGER, ots INTEGER)""")
+        contact_name TEXT, company TEXT, phone TEXT,
+        duration INTEGER, final_price INTEGER, actual_reach INTEGER, ots INTEGER,
+        cost_per_contact REAL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
     conn.commit()
     conn.close()
 
-def create_pro_excel(row):
-    wb = Workbook(); ws = wb.active; ws.title = "Медиаплан"
+def create_excel(row):
+    wb = Workbook(); ws = wb.active; ws.title = "Медиаплан РЗС"
     blue = PatternFill(start_color="1A237E", end_color="1A237E", fill_type="solid")
-    border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
-    
     ws.merge_cells("A1:C1")
-    ws["A1"] = f"МЕДИАПЛАН РЗС ТЮМЕНЬ #{row['campaign_number']}"
+    ws["A1"] = f"МЕДИАПЛАН РЕКЛАМНОЙ КАМПАНИИ #{row['campaign_number']}"
     ws["A1"].fill = blue; ws["A1"].font = Font(color="FFFFFF", bold=True, size=14)
     ws["A1"].alignment = Alignment(horizontal="center")
     
-    headers = [
+    data = [
         ("Радиостанции", row['radio_stations']),
-        ("Период", f"{row['start_date']} - {row['end_date']} ({row['campaign_days']} дн.)"),
-        ("Рекламных контактов (OTS)", f"{row.get('ots', 0):,}"),
-        ("Суточный охват (чел)", f"{int(row['actual_reach']*0.7):,}"),
-        ("Общий охват (чел)", f"{row['actual_reach']:,}"),
+        ("Период размещения", f"{row['start_date']} - {row['end_date']} ({row['campaign_days']} дн.)"),
+        ("Хронометраж", f"{row['duration']} сек."),
+        ("Рекламные контакты (OTS)", f"{row.get('ots', 0):,}"),
+        ("Общий охват (период)", f"{row['actual_reach']:,} чел."),
+        ("Стоимость 1 контакта", f"{row.get('cost_per_contact', 0)} руб."),
         ("ИТОГО К ОПЛАТЕ", f"{row['final_price']:,} руб.")
     ]
-    for r_idx, (k, v) in enumerate(headers, 3):
+    for r_idx, (k, v) in enumerate(data, 3):
         ws.cell(row=r_idx, column=1, value=k).font = Font(bold=True)
-        ws.cell(row=r_idx, column=1).border = border
-        ws.cell(row=r_idx, column=2, value=v).border = border
+        ws.cell(row=r_idx, column=2, value=v)
     
-    ws["A10"] = "СЦЕНАРИЙ / ТЕКСТ РОЛИКА:"; ws["A10"].font = Font(bold=True)
+    ws["A11"] = "ТЕКСТ / СЦЕНАРИЙ РОЛИКА:"; ws["A11"].font = Font(bold=True, color="1A237E")
     txt = row.get('campaign_text') or "Материал заказчика"
-    for i, line in enumerate(textwrap.wrap(txt, 70), 11):
+    for i, line in enumerate(textwrap.wrap(txt, 70), 12):
         ws.cell(row=i, column=1, value=line)
+
+    ws["A20"] = "Ваш менеджер: Александра Васильева"; ws["A21"] = "Телефон: +7 (3452) 68-82-12"
     
-    ws.column_dimensions['A'].width = 30; ws.column_dimensions['B'].width = 45
     out = io.BytesIO(); wb.save(out); out.seek(0)
     return out
 
@@ -66,7 +66,7 @@ def static_files(path): return send_from_directory('frontend', path)
 def calc():
     res = calculate_campaign_price_and_reach(request.json)
     return jsonify({"success":True, "calculation": {
-        "final_price": res[2], "total_reach": res[3], "daily_coverage": res[4], "spots_per_day": res[5], "ots": res[6]
+        "final_price": res[2], "total_reach": res[3], "daily_coverage": res[4], "spots": res[5], "ots": res[6], "cpc": res[7]
     }})
 
 @app.route('/api/create-campaign', methods=['POST'])
@@ -74,20 +74,19 @@ def create():
     init_db(); d = request.json; c_num = f"R-{datetime.now().strftime('%H%M%S')}"
     conn = sqlite3.connect(DB_PATH)
     conn.execute("""INSERT INTO campaigns (user_id, campaign_number, radio_stations, start_date, end_date, 
-        campaign_days, time_slots, campaign_text, production_option, contact_name, company, phone, email, 
-        duration, final_price, actual_reach, ots) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        campaign_days, time_slots, campaign_text, production_option, contact_name, company, phone, 
+        duration, final_price, actual_reach, ots, cost_per_contact) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (d.get('user_id'), c_num, ",".join(d.get('selected_radios')), d.get('start_date'), d.get('end_date'), 
          d.get('campaign_days'), ",".join(map(str, d.get('selected_time_slots'))), d.get('campaign_text'), 
-         d.get('production_option'), d.get('contact_name'), d.get('company'), d.get('phone'), d.get('email'), 
-         d.get('duration'), d.get('final_price'), d.get('total_reach'), d.get('ots')))
+         d.get('production_option'), d.get('contact_name'), d.get('company'), d.get('phone'), 
+         d.get('duration'), d.get('final_price'), d.get('total_reach'), d.get('ots'), d.get('cpc')))
     conn.commit(); conn.close()
     
-    # Авто-отправка Excel
+    # Отправка Excel
     try:
-        excel = create_pro_excel(d); excel.name = f"Mediaplan_{c_num}.xlsx"
+        excel = create_excel(d); excel.name = f"Mediaplan_{c_num}.xlsx"
         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument", 
-            files={'document': (excel.name, excel)}, 
-            data={'chat_id': d.get('user_id'), 'caption': f'Ваш медиаплан {c_num} готов!'})
+            files={'document': (excel.name, excel)}, data={'chat_id': d.get('user_id'), 'caption': f'Ваш медиаплан {c_num} готов!'})
     except: pass
     
     return jsonify({"success":True, "campaign_number": c_num})
@@ -98,10 +97,16 @@ def history(user_id):
     rows = conn.execute("SELECT * FROM campaigns WHERE user_id = ? ORDER BY id DESC", (user_id,)).fetchall()
     return jsonify({"success":True, "campaigns": [dict(r) for r in rows]})
 
-@app.route('/api/confirmation/<num>')
-def conf(num):
-    init_db(); conn = sqlite3.connect(DB_PATH); conn.row_factory = sqlite3.Row
+@app.route('/api/send-excel/<num>', methods=['POST'])
+def send_ex(num):
+    uid = request.json.get('user_telegram_id')
+    conn = sqlite3.connect(DB_PATH); conn.row_factory = sqlite3.Row
     row = conn.execute("SELECT * FROM campaigns WHERE campaign_number = ?", (num,)).fetchone()
-    return jsonify({"success":True, "campaign": dict(row)}) if row else jsonify({"success":False})
+    if row:
+        excel = create_excel(dict(row)); excel.name = f"Mediaplan_{num}.xlsx"
+        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument", 
+            files={'document': (excel.name, excel)}, data={'chat_id': uid})
+        return jsonify({"success":True})
+    return jsonify({"success":False})
 
 if __name__ == '__main__': init_db(); app.run(host='0.0.0.0', port=5000)
