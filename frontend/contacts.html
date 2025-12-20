@@ -2,23 +2,24 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Контакты</title>
+    <title>Контакты РЗС</title>
     <style>
-        body { font-family: sans-serif; background: #F5F5F7; text-align: center; padding: 50px 20px; }
+        body { font-family: sans-serif; background: #F5F5F7; text-align: center; padding: 50px 20px; margin: 0; }
         .card { background: #fff; border-radius: 30px; padding: 40px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         h2 { color: #1A237E; font-weight: 900; margin-bottom: 5px; }
         p { color: #666; margin-bottom: 30px; font-weight: 700; }
         .link { display: block; padding: 20px; margin: 10px 0; background: #f0f2ff; border-radius: 15px; color: #1A237E; text-decoration: none; font-weight: 800; font-size: 18px; }
+        .btn-back { width: 100%; padding: 20px; background: #E0E0E0; color: #666; border: none; border-radius: 15px; font-weight: 800; font-size: 16px; margin-top: 40px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="card">
-        <div style="font-size: 50px; margin-bottom: 20px">👩🏼‍💼</div>
+        <div style="font-size: 60px; margin-bottom: 20px">👩🏼‍💼</div>
         <h2>Александра Васильева</h2>
         <p>Руководитель отдела рекламы</p>
         <a href="tel:+73452688212" class="link">📞 +7 (3452) 68-82-12</a>
         <a href="mailto:alexandra@rzs.ru" class="link">✉️ alexandra@rzs.ru</a>
-        <button onclick="history.back()" style="margin-top:40px; border:none; background:none; color:#999; font-weight:bold">НАЗАД</button>
+        <button class="btn-back" onclick="location.href='index.html'">НАЗАД</button>
     </div>
 </body>
 </html>
