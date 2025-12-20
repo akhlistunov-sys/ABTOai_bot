@@ -7,20 +7,22 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --main: #1A237E; --acc: #26D0CE; --bg: #F4F6F9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 140px; font-size: 16px; }
-        .header { background: var(--main); color: #fff; padding: 25px; text-align: center; font-weight: 900; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 150px; font-size: 16px; }
+        .header { background: var(--main); color: #fff; padding: 25px; text-align: center; font-weight: 800; font-size: 18px; }
         .step { display: none; padding: 20px; }
         .step.active { display: block; }
-        .card { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 2px solid #eee; transition: 0.2s; cursor: pointer; font-weight: 700; }
+        .card { background: #fff; border-radius: 15px; padding: 20px; margin-bottom: 15px; border: 2px solid #eee; transition: 0.2s; cursor: pointer; font-weight: 600; }
         .card.selected { border-color: var(--main); background: #E8EAF6; }
-        .footer-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 3px solid var(--main); padding: 20px; z-index: 100; box-shadow: 0 -10px 30px rgba(0,0,0,0.1); }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin-bottom: 15px; font-weight: 800; color: #444; }
+        .footer-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 3px solid var(--main); padding: 20px; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 15px; font-weight: 700; color: #444; }
         .btn-row { display: flex; gap: 12px; }
-        .btn { flex: 1; padding: 18px; border-radius: 12px; border: none; font-weight: 900; font-size: 16px; cursor: pointer; }
+        .btn { flex: 1; padding: 18px; border-radius: 12px; border: none; font-weight: 800; font-size: 16px; cursor: pointer; }
         .btn-next { background: var(--main); color: #fff; }
         .btn-back { background: #9E9E9E; color: #fff; }
-        input[type="date"] { width: 100%; padding: 20px; border: 2px solid #ddd; border-radius: 15px; font-size: 18px; margin-bottom: 15px; box-sizing: border-box; }
-        input[type="number"], input[type="text"], input[type="tel"], textarea { width: 100%; padding: 18px; border: 2px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; }
+        .date-box { background: #fff; padding: 20px; border-radius: 15px; border: 2px solid #eee; margin-bottom: 15px; }
+        input[type="date"], input[type="number"], input[type="text"], input[type="tel"], textarea { 
+            width: 100%; padding: 18px; border: 2px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 16px; margin: 10px 0;
+        }
         .st-reach { color: var(--acc); font-size: 12px; font-weight: 800; }
     </style>
 </head>
@@ -29,18 +31,23 @@
     
     <div id="steps">
         <div id="step1" class="step active">
-            <div class="card" onclick="toggleSt('ЕВРОПА ПЛЮС', this)">ЕВРОПА ПЛЮС <br><span class="st-reach">81.7к чел/сут</span></div>
-            <div class="card" onclick="toggleSt('ДОРОЖНОЕ РАДИО', this)">ДОРОЖНОЕ РАДИО <br><span class="st-reach">59.1к чел/сут</span></div>
-            <div class="card" onclick="toggleSt('РЕТРО FM', this)">РЕТРО FM <br><span class="st-reach">44.5к чел/сут</span></div>
-            <div class="card" onclick="toggleSt('КРАСНАЯ АРМИЯ', this)">КРАСНАЯ АРМИЯ <br><span class="st-reach">30.3к чел/сут</span></div>
+            <div class="card" onclick="toggleSt('ЕВРОПА ПЛЮС', this)">ЕВРОПА ПЛЮС <span style="float:right; color:var(--acc)">81.7к</span></div>
+            <div class="card" onclick="toggleSt('ДОРОЖНОЕ РАДИО', this)">ДОРОЖНОЕ РАДИО <span style="float:right; color:var(--acc)">59.1к</span></div>
+            <div class="card" onclick="toggleSt('РЕТРО FM', this)">РЕТРО FM <span style="float:right; color:var(--acc)">44.5к</span></div>
+            <div class="card" onclick="toggleSt('КРАСНАЯ АРМИЯ', this)">КРАСНАЯ АРМИЯ <span style="float:right; color:var(--acc)">30.3к</span></div>
+            <div class="card" onclick="toggleSt('НОВОЕ РАДИО', this)">НОВОЕ РАДИО <span style="float:right; color:var(--acc)">14.5к</span></div>
         </div>
 
         <div id="step2" class="step">
-            <label style="font-weight:800; color:var(--main); display:block; margin-bottom:10px;">ДАТА СТАРТА</label>
-            <input type="date" id="start_date" onchange="updDates()">
-            <label style="font-weight:800; color:var(--main); display:block; margin-bottom:10px;">ДАТА ЗАВЕРШЕНИЯ</label>
-            <input type="date" id="end_date" onchange="updDates()">
-            <div style="text-align:center; padding:20px; font-weight:900; color:var(--main); font-size:20px;">ВЫБРАНО: <span id="days_val">0</span> ДНЕЙ</div>
+            <div class="date-box">
+                <label style="font-weight:800; color:var(--main)">ДАТА СТАРТА</label>
+                <input type="date" id="start_date" onchange="updDates()">
+            </div>
+            <div class="date-box">
+                <label style="font-weight:800; color:var(--main)">ДАТА ЗАВЕРШЕНИЯ</label>
+                <input type="date" id="end_date" onchange="updDates()">
+            </div>
+            <div style="text-align:center; padding:15px; font-weight:800; color:var(--main)">ВЫБРАНО: <span id="days_val">0</span> ДНЕЙ</div>
         </div>
 
         <div id="step3" class="step">
@@ -49,6 +56,7 @@
         </div>
 
         <div id="step4" class="step">
+            <h3 style="text-align:center; color:var(--main)">ВАРИАНТ РОЛИКА</h3>
             <div class="card" onclick="setPath('text')">У МЕНЯ ЕСТЬ ТЕКСТ (НУЖЕН РОЛИК)</div>
             <div class="card" onclick="setPath('audio')">У МЕНЯ ЕСТЬ ГОТОВЫЙ ФАЙЛ</div>
         </div>
@@ -61,11 +69,11 @@
 
         <div id="step6" class="step">
             <h3 style="color:var(--main)">ТЕКСТ ДЛЯ РОЛИКА</h3>
-            <textarea id="campaign_text" rows="8" placeholder="Введите ваш текст..." oninput="saveTxt()"></textarea>
+            <textarea id="campaign_text" rows="8" placeholder="Введите текст ролика..."></textarea>
         </div>
 
         <div id="step7" class="step">
-            <h3 style="color:var(--main)">ВАРИАНТ ПРОИЗВОДСТВА</h3>
+            <h3 style="color:var(--main)">ПРОДАКШН</h3>
             <div class="card" onclick="setProd('standard', this)">СТАНДАРТНЫЙ (+2000р)</div>
             <div class="card" onclick="setProd('premium', this)">ПРЕМИУМ (+5000р)</div>
         </div>
@@ -82,15 +90,15 @@
         <div class="stat-grid" id="footer_stats" style="display:none;">
             <div>Бюджет: <span id="f_price">0 ₽</span></div>
             <div>Контактов: <span id="f_ots">0</span></div>
-            <div>Слотов: <span id="f_slots">0</span></div>
+            <div>Выходов/день: <span id="f_spots">0</span></div>
             <div>Охват: <span id="f_rc">0</span></div>
         </div>
-        <div id="step_info" style="font-weight:900; color:var(--main); margin-bottom:15px; text-align:center;">
+        <div id="step_info" style="font-size:13px; font-weight:800; color:var(--main); margin-bottom:10px; text-align:center;">
             ВЫБРАНО СТАНЦИЙ: <span id="st_count">0</span>
         </div>
         <div class="btn-row">
             <button id="back_btn" class="btn btn-back" onclick="move(-1)" style="display:none;">НАЗАД</button>
-            <button id="home_btn" class="btn btn-back" onclick="location.href='index.html'" style="display:none;">ГЛАВНАЯ</button>
+            <button id="home_btn" class="btn btn-back" onclick="location.href='index.html'">ГЛАВНАЯ</button>
             <button id="next_btn" class="btn btn-next" onclick="move(1)">ДАЛЕЕ</button>
         </div>
     </div>
@@ -98,6 +106,7 @@
     <script>
         let tg = window.Telegram.WebApp;
         let step = 1, radios = [], slots = [], path = '', prod = 'none', days = 0;
+        let lastCalc = { final_price: 0, ots: 0, total_reach: 0 };
         
         function haptic() { if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
 
@@ -109,10 +118,11 @@
             };
             fetch('/api/calculate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
             .then(r => r.json()).then(d => {
+                lastCalc = d.calculation;
                 document.getElementById('f_price').innerText = d.calculation.final_price.toLocaleString() + ' ₽';
                 document.getElementById('f_ots').innerText = d.calculation.ots.toLocaleString();
+                document.getElementById('f_spots').innerText = slots.length;
                 document.getElementById('f_rc').innerText = d.calculation.total_reach.toLocaleString();
-                document.getElementById('f_slots').innerText = slots.length;
             });
         }
 
@@ -130,6 +140,7 @@
             if(s && e && e >= s) {
                 days = Math.ceil((e - s) / (1000*60*60*24)) + 1;
                 document.getElementById('days_val').innerText = days;
+                upd();
             }
         }
 
@@ -137,7 +148,7 @@
             let html = '';
             for(let i=0; i<15; i++) {
                 let sel = slots.includes(i) ? 'selected' : '';
-                html += `<div class="card ${sel}" onclick="toggleSlot(${i}, this)">Выход в ${i+6}:00</div>`;
+                html += `<div class="card ${sel}" onclick="toggleSlot(${i}, this)">Слот ${i+6}:00</div>`;
             }
             document.getElementById('slots_container').innerHTML = html;
         }
@@ -147,41 +158,35 @@
             let idx = slots.indexOf(i);
             if(idx > -1) slots.splice(idx,1); else slots.push(i);
             el.classList.toggle('selected');
+            upd();
         }
 
-        function selAllSlots() { slots = Array.from({length:15},(_,i)=>i); loadSlots(); }
+        function selAllSlots() { slots = Array.from({length:15},(_,i)=>i); loadSlots(); upd(); }
         function setPath(p) { haptic(); path = p; move(1); }
-        function saveTxt() { localStorage.setItem('rzs_saved_text', document.getElementById('campaign_text').value); }
-        
-        function setProd(p, el) { 
-            haptic(); prod = p; 
-            document.querySelectorAll('#step7 .card').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected'); 
-            upd(); move(1); 
-        }
+        function setProd(p, el) { haptic(); prod = p; upd(); move(1); }
 
         function move(dir) {
             haptic();
-            if(step === 1 && radios.length === 0 && dir > 0) return alert('Выберите радио!');
+            if(step === 1 && radios.length === 0 && dir > 0) return alert('Выберите радиостанции!');
             if(step === 8 && dir > 0) return submit();
 
             document.getElementById('step'+step).classList.remove('active');
             
             if(step === 4 && dir > 0) step = (path === 'text') ? 6 : 5;
-            else if (step === 5 && dir > 0) { step = 8; upd(); }
+            else if (step === 5 && dir > 0) step = 8;
             else if (step === 6 && dir > 0) step = 7;
             else if (step === 7 && dir < 0) step = 6;
             else if (step === 8 && dir < 0) step = (path === 'text') ? 7 : 5;
             else step += dir;
 
             document.getElementById('step'+step).classList.add('active');
-            document.getElementById('back_btn').style.display = (step > 1) ? 'block' : 'none';
-            document.getElementById('home_btn').style.display = (step === 1) ? 'block' : 'none';
+            document.getElementById('back_btn').style.display = step > 1 ? 'block' : 'none';
+            document.getElementById('home_btn').style.display = step === 1 ? 'block' : 'none';
             document.getElementById('next_btn').innerText = step === 8 ? 'ОТПРАВИТЬ' : 'ДАЛЕЕ';
             document.getElementById('st_title').innerText = "ШАГ " + step;
             
             // Логика бюджета
-            document.getElementById('footer_stats').style.display = (step >= 5) ? 'grid' : 'none';
+            document.getElementById('footer_stats').style.display = (step >= 5 && step < 8) ? 'grid' : 'none';
             document.getElementById('step_info').style.display = (step < 5) ? 'block' : 'none';
             
             if(step === 3) loadSlots();
@@ -199,14 +204,15 @@
                 production_option: prod,
                 contact_name: document.getElementById('contact_name').value,
                 company: document.getElementById('company').value,
-                final_price: document.getElementById('f_price').innerText.replace(/\D/g,''),
-                total_reach: document.getElementById('f_rc').innerText.replace(/\D/g,''),
-                ots: document.getElementById('f_ots').innerText.replace(/\D/g,'')
+                phone: document.getElementById('phone').value,
+                final_price: lastCalc.final_price,
+                total_reach: lastCalc.total_reach,
+                ots: lastCalc.ots
             };
             fetch('/api/create-campaign', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
             .then(r => r.json()).then(d => { if(d.success) location.href='/confirmation.html?campaign='+d.campaign_number; });
         }
-        window.onload = () => { tg.expand(); document.getElementById('campaign_text').value = localStorage.getItem('rzs_saved_text') || ''; };
+        window.onload = () => { tg.expand(); };
     </script>
 </body>
 </html>
