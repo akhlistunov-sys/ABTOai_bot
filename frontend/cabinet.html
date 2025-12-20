@@ -2,20 +2,23 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Личный кабинет</title>
+    <title>РЗС | Кабинет</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #F5F5F7; padding: 25px; margin: 0; }
+        body { font-family: sans-serif; background: #F5F5F7; margin: 0; padding: 25px; }
         .card { background: #fff; border-radius: 25px; padding: 25px; margin-bottom: 20px; border-left: 8px solid #1A237E; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .num { font-weight: 900; color: #1A237E; font-size: 20px; margin-bottom: 10px; }
-        .row { font-size: 15px; margin: 6px 0; color: #555; font-weight: 700; }
-        .btn { width: 100%; padding: 20px; background: #1A237E; color: #fff; border: none; border-radius: 18px; font-weight: 800; font-size: 16px; margin-top: 30px; }
+        .num { font-weight: 900; color: #1A237E; font-size: 22px; margin-bottom: 10px; }
+        .row { font-size: 15px; margin: 6px 0; color: #444; font-weight: 700; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: 800; font-size: 15px; margin-top: 10px; cursor: pointer; }
+        .btn-ex { background: #2E7D32; color: #fff; }
+        .btn-sh { background: #1A237E; color: #fff; }
     </style>
 </head>
 <body>
-    <h1 style="color:#1A237E; text-align:center; font-weight:900; margin-bottom:30px;">МОИ КАМПАНИИ</h1>
+    <h1 style="color:#1A237E; text-align:center; font-weight:900;">МОИ КАМПАНИИ</h1>
     <div id="list">Загрузка...</div>
-    <button class="btn" onclick="location.href='index.html'">НА ГЛАВНУЮ</button>
+    <button class="btn" style="background:#999; color:#fff" onclick="location.href='index.html'">НА ГЛАВНУЮ</button>
+
     <script>
         let uid = window.Telegram.WebApp.initDataUnsafe?.user?.id || 123;
         fetch('/api/user-campaigns/'+uid).then(r=>r.json()).then(d=>{
@@ -23,13 +26,21 @@
             d.campaigns.forEach(c => {
                 h += `<div class="card">
                     <div class="num">#${c.campaign_number}</div>
-                    <div class="row">Начало: ${c.start_date}</div>
+                    <div class="row">Дата: ${c.start_date}</div>
                     <div class="row">Сумма: ${c.final_price.toLocaleString()} ₽</div>
                     <div class="row">Охват: ${c.actual_reach.toLocaleString()} чел.</div>
+                    <button class="btn btn-ex" onclick="sendEx('${c.campaign_number}')">📊 ПОЛУЧИТЬ EXCEL</button>
+                    <button class="btn btn-sh" onclick="share('${c.campaign_number}', ${c.final_price}, ${c.actual_reach})">🔗 ПОДЕЛИТЬСЯ</button>
                 </div>`;
             });
-            document.getElementById('list').innerHTML = h || '<div style="text-align:center; padding:50px; opacity:0.5;">Заказов пока нет</div>';
+            document.getElementById('list').innerHTML = h || '<div style="text-align:center; padding:50px">Пока пусто</div>';
         });
+        function sendEx(n) { fetch('/api/send-excel/'+n, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user_telegram_id: uid}) }).then(()=>alert('Файл отправлен!')); }
+        function share(n, p, r) {
+            const text = `Мой расчет рекламы на РЗС №${n}:\n💰 Бюджет: ${p.toLocaleString()} ₽\n👥 Охват: ${r.toLocaleString()} чел.\nРассчитайте свою кампанию в @ВашБот`;
+            if (navigator.share) { navigator.share({ title: 'Медиаплан РЗС', text: text }); } 
+            else { alert('Текст скопирован в буфер!'); navigator.clipboard.writeText(text); }
+        }
     </script>
 </body>
 </html>
