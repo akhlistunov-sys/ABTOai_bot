@@ -1,7 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-# Цены делены на 3 от исходных. Данные Mediascope 2024-2025.
+# Цены в 3 раза ниже исходных. Охваты Mediascope 2024-2025.
 STATION_DATA = {
     "КРАСНАЯ АРМИЯ": {"reach": 30.3, "price": 16.67, "aqh": 2.2},
     "ЕВРОПА ПЛЮС": {"reach": 81.7, "price": 33.00, "aqh": 6.1},
@@ -32,21 +32,20 @@ def calculate_campaign_price_and_reach(data):
         
         if not radios or not slots: return 0, 0, 7000, 0, 0, 0, 0, 0
 
-        # Расчет эфирного бюджета
+        # Бюджет
         sum_price = sum(STATION_DATA[r]["price"] for r in radios)
         air_cost = int(sum_price * duration * len(slots) * days * PRICE_TIERS.get(len(radios), 0.8))
         if len(slots) == 15: air_cost = int(air_cost * 0.95)
 
-        # Продакшн
-        p_costs = {"standard": 2000, "premium": 5000, "none": 0}
-        total_price = max(air_cost + p_costs.get(data.get("production_option", "none"), 0), 7000)
+        prod_costs = {"standard": 2000, "premium": 5000, "none": 0}
+        total_price = max(air_cost + prod_costs.get(data.get("production_option", "none"), 0), 7000)
 
-        # Охват (честный коэффициент 0.7)
+        # Охват (честный 0.7)
         d_gross = sum(STATION_DATA[r]["reach"] * 1000 for r in radios) * sum(TIME_SLOTS_DATA[i]["weight"] for i in slots)
         u_daily = int(d_gross * 0.7)
         total_reach = int(u_daily * (1 + (days * 0.038)))
 
-        # Контакты OTS (AQH на количество выходов)
+        # Контакты (OTS)
         avg_aqh = sum(STATION_DATA[r]["aqh"] * 1000 for r in radios)
         total_ots = int(avg_aqh * len(slots) * days)
 
