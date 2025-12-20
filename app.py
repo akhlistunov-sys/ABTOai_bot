@@ -24,20 +24,18 @@ def init_db():
     conn.close()
 
 def create_pro_excel(row):
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Медиаплан РЗС"
+    wb = Workbook(); ws = wb.active; ws.title = "Медиаплан"
     blue = PatternFill(start_color="1A237E", end_color="1A237E", fill_type="solid")
     ws.merge_cells("A1:C1")
-    ws["A1"] = f"МЕДИАПЛАН РЗС ТЮМЕНЬ #{row['campaign_number']}"
+    ws["A1"] = f"МЕДИАПЛАН РЗС #{row['campaign_number']}"
     ws["A1"].fill = blue; ws["A1"].font = Font(color="FFFFFF", bold=True, size=14)
     ws["A1"].alignment = Alignment(horizontal="center")
     
     headers = [
         ("Радиостанции", row['radio_stations']),
         ("Период", f"{row['start_date']} - {row['end_date']} ({row['campaign_days']} дн.)"),
-        ("Хронометраж", f"{row['duration']} сек."),
-        ("Рекламных контактов", f"{row.get('ots', 0):,}"),
+        ("Контакты (OTS)", f"{row.get('ots', 0):,}"),
+        ("Охват (период)", f"{row['actual_reach']:,} чел."),
         ("ИТОГО К ОПЛАТЕ", f"{row['final_price']:,} руб.")
     ]
     for r_idx, (k, v) in enumerate(headers, 3):
@@ -77,7 +75,7 @@ def create():
          d.get('duration'), d.get('final_price'), d.get('total_reach'), d.get('ots')))
     conn.commit(); conn.close()
     
-    # Авто-отправка Excel клиенту и админу
+    # Авто-Excel
     row_dict = d.copy(); row_dict['campaign_number'] = c_num
     excel = create_pro_excel(row_dict)
     requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument", 
