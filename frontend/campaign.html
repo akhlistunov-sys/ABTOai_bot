@@ -19,7 +19,7 @@
         .btn { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: 900; font-size: 16px; cursor: pointer; }
         .btn-next { background: var(--main); color: #fff; }
         .btn-back { background: #E0E0E0; color: #666; }
-        .bonus-box { background: #FFF9C4; padding: 12px; border-radius: 12px; margin-bottom: 10px; font-size: 12px; border-left: 5px solid #FBC02D; display: none; }
+        .bonus-box { background: #FFF9C4; padding: 15px; border-radius: 15px; margin-bottom: 15px; font-size: 13px; border-left: 5px solid #FBC02D; display: none; }
         input, textarea { width: 100%; padding: 18px; border: 2px solid #eee; border-radius: 15px; box-sizing: border-box; font-size: 17px; margin: 10px 0; background: #fafafa; }
         .st-reach { color: var(--acc); font-size: 13px; font-weight: 800; }
         .st-target { font-size: 12px; color: #999; font-weight: normal; }
@@ -39,9 +39,9 @@
         </div>
 
         <div id="step2" class="step">
-            <label style="font-weight:900; color:var(--main)">ДАТА СТАРТА</label>
+            <label style="font-weight:900; color:var(--main)">🗓️ ДАТА НАЧАЛА КАМПАНИИ:</label>
             <input type="date" id="start_date" onchange="updDates()">
-            <label style="font-weight:900; color:var(--main); margin-top:15px; display:block">ДАТА ЗАВЕРШЕНИЯ</label>
+            <label style="font-weight:900; color:var(--main); margin-top:15px; display:block">🗓️ ДАТА ОКОНЧАНИЯ КАМПАНИИ:</label>
             <input type="date" id="end_date" onchange="updDates()">
             <div id="days_display" style="text-align:center; padding:20px; font-weight:900; color:var(--main); font-size:22px;">0 ДНЕЙ</div>
         </div>
@@ -74,7 +74,7 @@
 
         <div id="step7" class="step">
             <div class="card" onclick="setProd('standard', this)">ИНФОРМАЦИОННЫЙ — 5 000 ₽ <br><span style="font-size:12px; color:#999">Диктор, музыка, монтаж. Срок 3 дня.</span></div>
-            <div class="card" onclick="setProd('premium', this)">ВОКАЛЬНЫЙ — 12 500 ₽ <br><span style="font-size:12px; color:#999">Игровой формат, профессиональный вокал.</span></div>
+            <div class="card" onclick="setProd('vocal', this)">ВОКАЛЬНЫЙ — 12 500 ₽ <br><span style="font-size:12px; color:#999">Игровой формат, профессиональный вокал.</span></div>
             <p style="font-size:11px; color:#999; text-align:center">* Цена может измениться в зависимости от диктора</p>
         </div>
 
@@ -146,17 +146,17 @@
             let e = new Date(document.getElementById('end_date').value);
             if(s && e && e >= s) {
                 days = Math.ceil((e - s) / (1000*60*60*24)) + 1;
-                document.getElementById('days_display').innerText = `ИТОГО: ${days} ДНЕЙ`;
+                document.getElementById('days_display').innerText = `${days} ДНЕЙ`;
             }
         }
 
         function loadSlots() {
             const labels = [
-                {t:"06-07", l:"Подъем (6%)"}, {t:"07-08", l:"Трафик (10%) 🚀"}, {t:"08-09", l:"Пик (12%) 🚀"},
-                {t:"09-10", l:"Работа (8%) 🚀"}, {t:"10-11", l:"Работа (7%)"}, {t:"11-12", l:"Офис (6%)"},
-                {t:"12-13", l:"Обед (5%)"}, {t:"13-14", l:"Обед (5%)"}, {t:"14-15", l:"День (5%)"},
-                {t:"15-16", l:"День (6%)"}, {t:"16-17", l:"Конец дня (7%)"}, {t:"17-18", l:"Вечер (10%) 🚀"},
-                {t:"18-19", l:"Пик (8%) 🚀"}, {t:"19-20", l:"Дом (4%)"}, {t:"20-21", l:"Отдых (4%)"}
+                {t:"06:00-07:00", l:"Подъем, сборы (6%)"}, {t:"07:00-08:00", l:"Утренние поездки (10%) 🚀"}, {t:"08:00-09:00", l:"Пик трафика (12%) 🚀"},
+                {t:"09:00-10:00", l:"Начало работы (8%) 🚀"}, {t:"10:00-11:00", l:"Рабочий процесс (7%)"}, {t:"11:00-12:00", l:"Предобеденное время (6%)"},
+                {t:"12:00-13:00", l:"Обеденный перерыв (5%)"}, {t:"13:00-14:00", l:"После обеда (5%)"}, {t:"14:00-15:00", l:"Вторая половина дня (5%)"},
+                {t:"15:00-16:00", l:"Рабочий финиш (6%)"}, {t:"16:00-17:00", l:"Конец рабочего дня (7%)"}, {t:"17:00-18:00", l:"Вечерние поездки (10%) 🚀"},
+                {t:"18:00-19:00", l:"Пик трафика (8%) 🚀"}, {t:"19:00-20:00", l:"Домашний вечер (4%)"}, {t:"20:00-21:00", l:"Вечерний отдых (4%)"}
             ];
             let html = '';
             labels.forEach((l, i) => {
@@ -187,9 +187,10 @@
             document.getElementById('step'+step).classList.add('active');
             document.getElementById('back_btn').style.display = (step > 1) ? 'block' : 'none';
             document.getElementById('home_btn').style.display = (step === 1) ? 'block' : 'none';
+            document.getElementById('next_btn').innerText = step === 8 ? 'ОТПРАВИТЬ' : 'ДАЛЕЕ';
             document.getElementById('st_title').innerText = "ШАГ " + step;
-            document.getElementById('footer_stats').style.display = (step >= 3) ? 'grid' : 'none';
-            document.getElementById('step_info').style.display = (step < 3) ? 'block' : 'none';
+            document.getElementById('footer_stats').style.display = (step >= 5 && step < 8) ? 'grid' : 'none';
+            document.getElementById('step_info').style.display = (step < 5) ? 'block' : 'none';
             if(step === 3) loadSlots();
             window.scrollTo(0,0);
         }
