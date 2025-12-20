@@ -6,191 +6,195 @@
     <title>Калькулятор РЗС</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main: #1A237E; --bg: #F5F7FA; --white: #FFFFFF; --accent: #26D0CE; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; }
-        .header { background: var(--main); color: #fff; padding: 20px; text-align: center; font-weight: 700; }
+        :root { --main: #1A237E; --accent: #26D0CE; --bg: #F4F6F9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 120px; }
+        .header { background: var(--main); color: #fff; padding: 20px; text-align: center; font-weight: bold; }
         .step { display: none; padding: 15px; }
         .step.active { display: block; }
-        .card { background: #fff; border-radius: 15px; padding: 15px; margin-bottom: 12px; border: 2px solid #eee; cursor: pointer; transition: 0.2s; }
+        .card { background: #fff; border-radius: 15px; padding: 15px; margin-bottom: 10px; border: 2px solid #eee; transition: 0.2s; cursor: pointer; }
         .card.selected { border-color: var(--main); background: #E8EAF6; }
-        .title { font-weight: 700; color: var(--main); margin-bottom: 10px; font-size: 16px; text-align: center; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin: 8px 0; box-sizing: border-box; }
-        .stats { background: #E3F2FD; padding: 12px; border-radius: 12px; margin: 15px 0; font-size: 14px; }
-        .stat-row { display: flex; justify-content: space-between; margin: 5px 0; }
-        .btn-box { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 10px; }
-        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; background: var(--main); color: #fff; font-weight: 700; }
-        .btn-back { background: #9E9E9E; }
+        .footer-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 2px solid var(--main); padding: 15px; z-index: 100; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 11px; margin-bottom: 10px; font-weight: 600; color: #555; }
+        .btn-row { display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-next { background: var(--main); color: #fff; }
+        .btn-back { background: #9E9E9E; color: #fff; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .st-reach { color: var(--accent); font-size: 12px; font-weight: 800; }
     </style>
 </head>
 <body>
-    <div class="header">КАЛЬКУЛЯТОР МЕДИАПЛАНА</div>
-    <div id="content">
-        <!-- Step 1 -->
+    <div class="header" id="step_title">ШАГ 1: РАДИОСТАНЦИИ</div>
+    
+    <div id="steps">
         <div id="step1" class="step active">
-            <div class="title">ВЫБЕРИТЕ РАДИОСТАНЦИИ</div>
-            <div class="card" onclick="toggleStation('КРАСНАЯ АРМИЯ', this)">КРАСНАЯ АРМИЯ (30 300 чел/сут)</div>
-            <div class="card" onclick="toggleStation('ЕВРОПА ПЛЮС', this)">ЕВРОПА ПЛЮС (81 700 чел/сут)</div>
-            <div class="card" onclick="toggleStation('ДОРОЖНОЕ РАДИО', this)">ДОРОЖНОЕ РАДИО (59 100 чел/сут)</div>
-            <div class="card" onclick="toggleStation('РЕТРО FM', this)">РЕТРО FM (44 500 чел/сут)</div>
-            <div class="card" onclick="toggleStation('НОВОЕ РАДИО', this)">НОВОЕ РАДИО (14 500 чел/сут)</div>
+            <div class="card" onclick="toggleSt('ЕВРОПА ПЛЮС', this)">ЕВРОПА ПЛЮС <br><span class="st-reach">81.7к чел/сут</span></div>
+            <div class="card" onclick="toggleSt('ДОРОЖНОЕ РАДИО', this)">ДОРОЖНОЕ РАДИО <br><span class="st-reach">59.1к чел/сут</span></div>
+            <div class="card" onclick="toggleSt('РЕТРО FM', this)">РЕТРО FM <br><span class="st-reach">44.5к чел/сут</span></div>
+            <div class="card" onclick="toggleSt('КРАСНАЯ АРМИЯ', this)">КРАСНАЯ АРМИЯ <br><span class="st-reach">30.3к чел/сут</span></div>
+            <div class="card" onclick="toggleSt('НОВОЕ РАДИО', this)">НОВОЕ РАДИО <br><span class="st-reach">14.5к чел/сут</span></div>
         </div>
-        <!-- Step 2 -->
+
         <div id="step2" class="step">
-            <div class="title">ПЕРИОД И ХРОНОМЕТРАЖ</div>
-            <label>Дата начала:</label><input type="date" id="start_date" onchange="calcDays()">
-            <label>Дата конца:</label><input type="date" id="end_date" onchange="calcDays()">
-            <label>Хронометраж (10-25 сек):</label><input type="number" id="duration" value="20" min="10" max="25" onchange="updateCalc()">
-            <div class="stats">Выбрано дней: <span id="days_val">0</span></div>
+            <label>Дата начала:</label><input type="date" id="start_date" onchange="updDates()">
+            <label style="margin-top:10px; display:block;">Дата окончания:</label><input type="date" id="end_date" onchange="updDates()">
+            <label style="margin-top:10px; display:block;">Хронометраж (сек):</label>
+            <input type="number" id="duration" value="20" min="5" max="30" onchange="upd()">
         </div>
-        <!-- Step 3 -->
+
         <div id="step3" class="step">
-            <div class="title">ВРЕМЕННЫЕ СЛОТЫ</div>
-            <div id="slots_list"></div>
+            <button class="btn btn-next" onclick="selAllSlots()" style="margin-bottom:10px; background:#FFA000">ВЫБРАТЬ ВСЕ 15 СЛОТОВ</button>
+            <div id="slots_container"></div>
         </div>
-        <!-- Step 4 -->
+
         <div id="step4" class="step">
-            <div class="title">ТЕКСТ И ПРОИЗВОДСТВО</div>
-            <textarea id="campaign_text" placeholder="Введите текст ролика..." rows="4" oninput="saveText()"></textarea>
-            <div class="card" onclick="setProd('standard', this)">СТАНДАРТНЫЙ РОЛИК (+2000₽)</div>
-            <div class="card" onclick="setProd('premium', this)">ПРЕМИУМ РОЛИК (+5000₽)</div>
-            <div class="card" onclick="setProd('none', this)">ЕСТЬ ГОТОВЫЙ РОЛИК</div>
+            <div class="card" onclick="setPath('text')">У МЕНЯ ЕСТЬ ТЕКСТ (НУЖЕН РОЛИК)</div>
+            <div class="card" onclick="setPath('audio')">У МЕНЯ ЕСТЬ ГОТОВЫЙ РОЛИК</div>
         </div>
-        <!-- Step 5 -->
+
         <div id="step5" class="step">
-            <div class="title">КОНТАКТНЫЕ ДАННЫЕ</div>
-            <input type="text" id="contact_name" placeholder="Ваше имя">
-            <input type="text" id="company" placeholder="Компания">
-            <input type="tel" id="phone" placeholder="Телефон">
-            <input type="email" id="email" placeholder="Email">
+            <textarea id="campaign_text" rows="6" placeholder="Введите текст ролика..." oninput="saveTxt()"></textarea>
+            <p id="speed" style="font-size:12px; margin-top:5px;"></p>
         </div>
-        <!-- Final Step -->
-        <div id="step6" class="step">
-            <div class="title">ИТОГОВЫЙ РАСЧЕТ</div>
-            <div class="stats" id="final_stats"></div>
-            <div id="visual_reach" style="text-align:center; font-size:12px; color:#666; padding:10px;"></div>
+
+        <div id="step7" class="step">
+            <div class="card" onclick="setProd('standard', this)">СТАНДАРТНЫЙ (+2000р)</div>
+            <div class="card" onclick="setProd('premium', this)">ПРЕМИУМ (+5000р)</div>
+        </div>
+
+        <div id="step8" class="step">
+            <input type="text" id="contact_name" placeholder="Ваше имя">
+            <input type="text" id="company" placeholder="Компания" style="margin-top:10px;">
+            <input type="tel" id="phone" placeholder="Телефон" style="margin-top:10px;">
+            <input type="email" id="email" placeholder="Email" style="margin-top:10px;">
         </div>
     </div>
 
-    <div class="btn-box">
-        <button id="prevBtn" class="btn btn-back" onclick="changeStep(-1)" style="display:none">НАЗАД</button>
-        <button id="nextBtn" class="btn" onclick="changeStep(1)">ДАЛЕЕ</button>
+    <div class="footer-nav">
+        <div class="stat-grid">
+            <div>Бюджет: <span id="f_price">0 ₽</span></div>
+            <div>Контактов: <span id="f_ots">0</span></div>
+            <div>Охват/сут: <span id="f_rd">0</span></div>
+            <div>Охват/период: <span id="f_rc">0</span></div>
+        </div>
+        <div class="btn-row">
+            <button id="back_btn" class="btn btn-back" onclick="move(-1)" style="display:none;">НАЗАД</button>
+            <button id="next_btn" class="btn btn-next" onclick="move(1)">ДАЛЕЕ</button>
+        </div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
-        let currentStep = 1;
-        let state = {
-            selected_radios: [], selected_time_slots: [], start_date: '', end_date: '',
-            campaign_days: 0, duration: 20, production_option: 'none',
-            campaign_text: localStorage.getItem('rzs_text') || '', contact_name: '', company: '', phone: '', email: '',
-            calculation: { final_price: 0, total_reach: 0 }
-        };
-
+        let step = 1, radios = [], slots = [], path = '', prod = 'none', days = 0;
+        
         function haptic() { if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
 
-        function changeStep(dir) {
-            haptic();
-            if (currentStep === 1 && state.selected_radios.length === 0 && dir === 1) return alert('Выберите радио!');
-            if (currentStep === 6 && dir === 1) return submitOrder();
-            
-            document.getElementById(`step${currentStep}`).classList.remove('active');
-            currentStep += dir;
-            document.getElementById(`step${currentStep}`).classList.add('active');
-            
-            document.getElementById('prevBtn').style.display = currentStep > 1 ? 'block' : 'none';
-            document.getElementById('nextBtn').innerText = currentStep === 6 ? 'ОТПРАВИТЬ' : 'ДАЛЕЕ';
-            
-            if (currentStep === 3) loadSlots();
-            if (currentStep === 6) updateCalc();
+        function upd() {
+            let data = {
+                selected_radios: radios, selected_time_slots: slots,
+                campaign_days: days, duration: document.getElementById('duration').value,
+                production_option: prod
+            };
+            fetch('/api/calculate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
+            .then(r => r.json()).then(d => {
+                document.getElementById('f_price').innerText = d.calculation.final_price.toLocaleString() + ' ₽';
+                document.getElementById('f_ots').innerText = d.calculation.ots.toLocaleString();
+                document.getElementById('f_rd').innerText = d.calculation.daily_coverage.toLocaleString();
+                document.getElementById('f_rc').innerText = d.calculation.total_reach.toLocaleString();
+            });
         }
 
-        function toggleStation(name, el) {
+        function toggleSt(name, el) {
             haptic();
-            let idx = state.selected_radios.indexOf(name);
-            if(idx > -1) state.selected_radios.splice(idx, 1); else state.selected_radios.push(name);
-            el.classList.toggle('selected');
+            let i = radios.indexOf(name);
+            if(i > -1) radios.splice(i,1); else radios.push(name);
+            el.classList.toggle('selected'); upd();
         }
 
-        function calcDays() {
+        function updDates() {
             let s = new Date(document.getElementById('start_date').value);
             let e = new Date(document.getElementById('end_date').value);
             if(s && e && e >= s) {
-                state.campaign_days = Math.ceil((e - s) / (1000*60*60*24)) + 1;
-                document.getElementById('days_val').innerText = state.campaign_days;
-                state.start_date = document.getElementById('start_date').value;
-                state.end_date = document.getElementById('end_date').value;
+                days = Math.ceil((e - s) / (1000*60*60*24)) + 1;
+                upd();
             }
         }
 
         function loadSlots() {
-            const slots = ["06:00-07:00","07:00-08:00","08:00-09:00","09:00-10:00","10:00-11:00","11:00-12:00","12:00-13:00","13:00-14:00","14:00-15:00","15:00-16:00","16:00-17:00","17:00-18:00","18:00-19:00","19:00-20:00","20:00-21:00"];
-            let html = '<button class="btn" onclick="selectAllSlots()" style="margin-bottom:10px; background:#FFA000">ВЫБРАТЬ ВСЕ (МАКС. ОХВАТ)</button>';
-            slots.forEach((s, i) => {
-                let sel = state.selected_time_slots.includes(i) ? 'selected' : '';
-                html += `<div class="card ${sel}" onclick="toggleSlot(${i}, this)">${s}</div>`;
-            });
-            document.getElementById('slots_list').innerHTML = html;
+            let html = '';
+            for(let i=0; i<15; i++) {
+                let sel = slots.includes(i) ? 'selected' : '';
+                html += `<div class="card ${sel}" onclick="toggleSlot(${i}, this)">Слот ${i+6}:00 - ${i+7}:00</div>`;
+            }
+            document.getElementById('slots_container').innerHTML = html;
         }
 
         function toggleSlot(i, el) {
             haptic();
-            let idx = state.selected_time_slots.indexOf(i);
-            if(idx > -1) state.selected_time_slots.splice(idx, 1); else state.selected_time_slots.push(i);
-            el.classList.toggle('selected');
+            let idx = slots.indexOf(i);
+            if(idx > -1) slots.splice(idx,1); else slots.push(i);
+            el.classList.toggle('selected'); upd();
         }
 
-        function selectAllSlots() {
-            state.selected_time_slots = Array.from({length: 15}, (_, i) => i);
-            loadSlots();
+        function selAllSlots() { slots = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]; loadSlots(); upd(); }
+        function setPath(p) { haptic(); path = p; move(1); }
+        function saveTxt() {
+            let t = document.getElementById('campaign_text').value;
+            localStorage.setItem('rzs_saved_text', t);
+            document.getElementById('speed').innerText = t.length > 150 ? "⚠️ Слишком длинный текст" : "✅ Оптимально";
+        }
+        function setProd(p, el) { 
+            haptic(); prod = p; 
+            document.querySelectorAll('#step7 .card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected'); upd(); 
         }
 
-        function setProd(val, el) {
+        function move(dir) {
             haptic();
-            state.production_option = val;
-            document.querySelectorAll('#step4 .card').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
+            if(step === 1 && radios.length === 0 && dir > 0) return alert('Выберите радиостанции!');
+            if(step === 8 && dir > 0) return submit();
+
+            document.getElementById('step'+step).classList.remove('active');
+            if(step === 4 && dir > 0) step = (path === 'text') ? 5 : 8;
+            else if (step === 5 && dir > 0) step = 7;
+            else if (step === 7 && dir < 0) step = 5;
+            else if (step === 8 && dir < 0) step = (path === 'text') ? 7 : 4;
+            else step += dir;
+
+            document.getElementById('step'+step).classList.add('active');
+            document.getElementById('back_btn').style.display = step > 1 ? 'block' : 'none';
+            document.getElementById('next_btn').innerText = step === 8 ? 'ОТПРАВИТЬ' : 'ДАЛЕЕ';
+            document.getElementById('step_title').innerText = "ШАГ " + step;
+            if(step === 3) loadSlots();
+            window.scrollTo(0,0);
         }
 
-        function saveText() {
-            state.campaign_text = document.getElementById('campaign_text').value;
-            localStorage.setItem('rzs_text', state.campaign_text);
+        function submit() {
+            let data = {
+                user_id: tg.initDataUnsafe?.user?.id || 123,
+                selected_radios: radios, selected_time_slots: slots,
+                start_date: document.getElementById('start_date').value,
+                end_date: document.getElementById('end_date').value,
+                campaign_days: days, duration: document.getElementById('duration').value,
+                campaign_text: document.getElementById('campaign_text').value,
+                production_option: prod,
+                contact_name: document.getElementById('contact_name').value,
+                company: document.getElementById('company').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                final_price: document.getElementById('f_price').innerText.replace(/\D/g,''),
+                total_reach: document.getElementById('f_rc').innerText.replace(/\D/g,''),
+                ots: document.getElementById('f_ots').innerText.replace(/\D/g,'')
+            };
+            fetch('/api/create-campaign', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
+            .then(r => r.json()).then(d => { if(d.success) location.href='/confirmation.html?campaign='+d.campaign_number; });
         }
 
-        function updateCalc() {
-            state.duration = document.getElementById('duration').value;
-            fetch('/api/calculate', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(state)
-            }).then(r => r.json()).then(d => {
-                state.calculation = d.calculation;
-                document.getElementById('final_stats').innerHTML = `
-                    <div class="stat-row"><span>Стоимость:</span><b>${d.calculation.final_price} ₽</b></div>
-                    <div class="stat-row"><span>Общий охват:</span><b>${d.calculation.total_reach} чел.</b></div>
-                    <div class="stat-row"><span>Выходов в день:</span><b>${d.calculation.spots_per_day}</b></div>
-                `;
-                let stadiums = Math.round(d.calculation.total_reach / 13000);
-                document.getElementById('visual_reach').innerText = `Это как ${stadiums} полностью заполненных стадионов «Геолог»!`;
-            });
-        }
-
-        function submitOrder() {
-            state.contact_name = document.getElementById('contact_name').value;
-            state.company = document.getElementById('company').value;
-            state.phone = document.getElementById('phone').value;
-            state.email = document.getElementById('email').value;
-            state.user_id = tg.initDataUnsafe?.user?.id || 123;
-            state.final_price = state.calculation.final_price;
-            state.total_reach = state.calculation.total_reach;
-
-            fetch('/api/create-campaign', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(state)
-            }).then(r => r.json()).then(d => {
-                if(d.success) location.href = '/confirmation.html?campaign=' + d.campaign_number;
-            });
-        }
-
-        window.onload = () => { tg.expand(); document.getElementById('campaign_text').value = state.campaign_text; };
+        window.onload = () => { 
+            tg.expand(); 
+            let saved = localStorage.getItem('rzs_saved_text');
+            if(saved) document.getElementById('campaign_text').value = saved;
+        };
     </script>
 </body>
 </html>
