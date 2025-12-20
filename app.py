@@ -33,9 +33,9 @@ def create_pro_excel(row):
     
     headers = [
         ("Радиостанции", row['radio_stations']),
-        ("Период размещения", f"{row['start_date']} - {row['end_date']} ({row['campaign_days']} дн.)"),
-        ("Рекламных контактов (OTS)", f"{row.get('ots', 0):,}"),
-        ("Общий охват (период)", f"{row['actual_reach']:,} чел."),
+        ("Период", f"{row['start_date']} - {row['end_date']} ({row['campaign_days']} дн.)"),
+        ("Хронометраж", f"{row['duration']} сек."),
+        ("Рекламных контактов", f"{row.get('ots', 0):,}"),
         ("ИТОГО К ОПЛАТЕ", f"{row['final_price']:,} руб.")
     ]
     for r_idx, (k, v) in enumerate(headers, 3):
@@ -43,9 +43,8 @@ def create_pro_excel(row):
         ws.cell(row=r_idx, column=2, value=v)
     
     ws["A9"] = "ТЕКСТ / СЦЕНАРИЙ:"; ws["A9"].font = Font(bold=True)
-    txt = row['campaign_text'] if row['campaign_text'] else "Предоставляется заказчиком"
-    for i, line in enumerate(textwrap.wrap(txt, 70), 10): 
-        ws.cell(row=i, column=1, value=line)
+    txt = row.get('campaign_text') if row.get('campaign_text') else "Материал предоставляется заказчиком"
+    for i, line in enumerate(textwrap.wrap(txt, 70), 10): ws.cell(row=i, column=1, value=line)
     
     out = io.BytesIO(); wb.save(out); out.seek(0)
     return out
@@ -76,12 +75,13 @@ def create():
          d.get('duration'), d.get('final_price'), d.get('total_reach'), d.get('ots')))
     conn.commit(); conn.close()
     
-    # Авто-отправка Excel
-    row_dict = d.copy(); row_dict['campaign_number'] = c_num
-    excel = create_pro_excel(row_dict)
-    requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument", 
-        files={'document': (f'Mediaplan_{c_num}.xlsx', excel)}, 
-        data={'chat_id': d.get('user_id'), 'caption': f'Ваш медиаплан {c_num} готов!'})
+    # Авто-отправка Excel в Telegram
+    try:
+        excel = create_pro_excel(d)
+        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument", 
+            files={'document': (f'Mediaplan_{c_num}.xlsx', excel)}, 
+            data={'chat_id': d.get('user_id'), 'caption': f'Ваш медиаплан {c_num} готов!'})
+    except: pass
     
     return jsonify({"success":True, "campaign_number": c_num})
 
