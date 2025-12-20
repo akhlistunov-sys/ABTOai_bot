@@ -1,10 +1,10 @@
 import os, sqlite3, io, textwrap, requests, logging
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
 from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from campaign_calculator import calculate_campaign_price_and_reach, TIME_SLOTS_DATA, STATION_DATA
+from campaign_calculator import calculate_campaign_price_and_reach
 
 app = Flask(__name__)
 CORS(app)
@@ -12,75 +12,42 @@ CORS(app)
 TELEGRAM_BOT_TOKEN = '7368212837:AAHqVeOYeIHpJyDXltk-b6eGMmhwdUcM45g'
 ADMIN_TELEGRAM_ID = 174046571
 
-# Универсальный путь к БД для Vercel/Render
-DB_PATH = os.path.join(os.getcwd(), "campaigns.db")
+# Для Vercel используем /tmp, так как это единственная папка с правами на запись
+DB_PATH = "/tmp/campaigns.db"
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS campaigns (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            campaign_number TEXT,
-            radio_stations TEXT,
-            start_date TEXT, end_date TEXT, campaign_days INTEGER,
-            time_slots TEXT, campaign_text TEXT, production_option TEXT,
-            contact_name TEXT, company TEXT, phone TEXT, email TEXT,
-            duration INTEGER, final_price INTEGER, actual_reach INTEGER,
-            status TEXT DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS campaigns (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                campaign_number TEXT,
+                radio_stations TEXT,
+                start_date TEXT, end_date TEXT, campaign_days INTEGER,
+                time_slots TEXT, campaign_text TEXT, production_option TEXT,
+                contact_name TEXT, company TEXT, phone TEXT, email TEXT,
+                duration INTEGER, final_price INTEGER, actual_reach INTEGER,
+                status TEXT DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"DB Init Error: {e}")
 
-def create_excel_report(data):
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Медиаплан РЗС"
-    
-    # Фирменный стиль РЗС
-    blue_fill = PatternFill(start_color="1A237E", end_color="1A237E", fill_type="solid")
-    white_bold = Font(color="FFFFFF", bold=True, size=12)
-    border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+# --- РОУТЫ ДЛЯ СТАТИКИ (ЧТОБЫ НЕ БЫЛО 404) ---
 
-    ws.merge_cells("A1:C1")
-    ws["A1"] = f"МЕДИАПЛАН КАМПАНИИ {data['campaign_number']}"
-    ws["A1"].fill = blue_fill
-    ws["A1"].font = white_bold
-    ws["A1"].alignment = Alignment(horizontal="center")
+@app.route('/')
+def serve_index():
+    return send_from_directory('frontend', 'index.html')
 
-    info = [
-        ["Радиостанции", data['radio_stations']],
-        ["Период", f"{data['start_date']} — {data['end_date']}"],
-        ["Дней", data['campaign_days']],
-        ["Хронометраж", f"{data['duration']} сек."],
-        ["Общий охват (чел)", data['actual_reach']],
-        ["ИТОГО СУММА", f"{data['final_price']} руб."],
-        ["", ""],
-        ["ТЕКСТ РОЛИКА / СЦЕНАРИЙ:", ""]
-    ]
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('frontend', path)
 
-    for i, (label, val) in enumerate(info, 2):
-        ws.cell(row=i, column=1, value=label).font = Font(bold=True)
-        ws.cell(row=i, column=2, value=val)
-
-    # Текст ролика с переносом
-    text_val = data.get('campaign_text') if data.get('campaign_text') else "Материал предоставляется заказчиком (готовый ролик)"
-    wrapped = textwrap.wrap(text_val, width=70)
-    start_row = 10
-    for line in wrapped:
-        ws.cell(row=start_row, column=1, value=line)
-        ws.merge_cells(start_row=start_row, start_column=1, end_row=start_row, end_column=3)
-        start_row += 1
-
-    ws.column_dimensions['A'].width = 25
-    ws.column_dimensions['B'].width = 40
-    
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-    return output
+# --- API ---
 
 @app.route('/api/calculate', methods=['POST'])
 def api_calculate():
@@ -107,14 +74,14 @@ def api_create():
     conn.commit()
     conn.close()
 
-    # Уведомление в TG
-    msg = f"⚡️ НОВАЯ ЗАЯВКА {c_num}\nКлиент: {d.get('contact_name')}\nКомпания: {d.get('company')}\nСумма: {d.get('final_price')} руб."
+    msg = f"📋 НОВАЯ ЗАЯВКА {c_num}\nКлиент: {d.get('contact_name')}\nКомпания: {d.get('company')}\nСумма: {d.get('final_price')} руб."
     requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data={"chat_id": ADMIN_TELEGRAM_ID, "text": msg})
     
     return jsonify({"success": True, "campaign_number": c_num})
 
 @app.route('/api/user-campaigns/<int:user_id>')
 def api_user_camps(user_id):
+    init_db()
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     rows = conn.execute("SELECT * FROM campaigns WHERE user_id = ? ORDER BY id DESC", (user_id,)).fetchall()
@@ -127,15 +94,27 @@ def api_send_excel(camp_num):
     conn.row_factory = sqlite3.Row
     row = conn.execute("SELECT * FROM campaigns WHERE campaign_number = ?", (camp_num,)).fetchone()
     if row:
-        excel = create_excel_report(dict(row))
+        # Функция создания Excel (встроена для компактности)
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Медиаплан"
+        ws.append(["Номер кампании", row['campaign_number']])
+        ws.append(["Станции", row['radio_stations']])
+        ws.append(["Сумма", row['final_price']])
+        ws.append(["Текст", row['campaign_text']])
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
         requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendDocument", 
-                      files={'document': (f'Mediaplan_{camp_num}.xlsx', excel)},
+                      files={'document': (f'Mediaplan_{camp_num}.xlsx', output)},
                       data={'chat_id': uid, 'caption': f'Ваш медиаплан {camp_num}'})
         return jsonify({"success": True})
-    return jsonify({"success": False, "error": "Not found"})
+    return jsonify({"success": False})
 
 @app.route('/api/confirmation/<camp_num>')
 def api_confirm(camp_num):
+    init_db()
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     row = conn.execute("SELECT * FROM campaigns WHERE campaign_number = ?", (camp_num,)).fetchone()
@@ -143,4 +122,4 @@ def api_confirm(camp_num):
 
 if __name__ == '__main__':
     init_db()
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(host='0.0.0.0', port=5000)
