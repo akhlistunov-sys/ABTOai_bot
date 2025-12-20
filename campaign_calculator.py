@@ -1,14 +1,13 @@
 import logging
 logger = logging.getLogger(__name__)
 
-# АКТУАЛЬНЫЕ ДАННЫЕ MEDIASCOPE (Тюмень 2024-2025)
-# Цены делены на 3 от исходных
+# Цены делены на 3 от исходных. Охват Mediascope 2024-2025.
 STATION_DATA = {
-    "КРАСНАЯ АРМИЯ": {"reach": 30.3, "price": 16.67, "aqh": 2.1},
-    "ЕВРОПА ПЛЮС": {"reach": 81.7, "price": 33.00, "aqh": 5.8},
-    "ДОРОЖНОЕ РАДИО": {"reach": 59.1, "price": 18.67, "aqh": 4.2},
-    "РЕТРО FM": {"reach": 44.5, "price": 17.00, "aqh": 3.5},
-    "НОВОЕ РАДИО": {"reach": 14.5, "price": 17.67, "aqh": 1.2}
+    "КРАСНАЯ АРМИЯ": {"reach": 30.3, "price": 16.67, "aqh": 2.2},
+    "ЕВРОПА ПЛЮС": {"reach": 81.7, "price": 33.00, "aqh": 6.1},
+    "ДОРОЖНОЕ РАДИО": {"reach": 59.1, "price": 18.67, "aqh": 4.5},
+    "РЕТРО FM": {"reach": 44.5, "price": 17.00, "aqh": 3.8},
+    "НОВОЕ РАДИО": {"reach": 14.5, "price": 17.67, "aqh": 1.4}
 }
 
 PRICE_TIERS = {1: 1.0, 2: 0.95, 3: 0.90, 4: 0.85, 5: 0.80}
@@ -33,26 +32,24 @@ def calculate_campaign_price_and_reach(data):
         
         if not radios or not slots: return 0, 0, 7000, 0, 0, 0, 0, 0
 
-        # Расчет бюджета
-        base_sec_total = sum(STATION_DATA[r]["price"] for r in radios)
-        air_cost = int(base_sec_total * duration * len(slots) * days * PRICE_TIERS.get(len(radios), 0.8))
-        
-        # Скидка 5% при выборе всех 15 слотов
+        # Бюджет эфира
+        sum_price = sum(STATION_DATA[r]["price"] for r in radios)
+        air_cost = int(sum_price * duration * len(slots) * days * PRICE_TIERS.get(len(radios), 0.8))
         if len(slots) == 15: air_cost = int(air_cost * 0.95)
 
-        prod_costs = {"standard": 2000, "premium": 5000, "none": 0}
-        total_price = max(air_cost + prod_costs.get(data.get("production_option", "none"), 0), 7000)
+        # Продакшн
+        p_costs = {"standard": 2000, "premium": 5000, "none": 0}
+        total_price = max(air_cost + p_costs.get(data.get("production_option", "none"), 0), 7000)
 
-        # Честный охват 0.7 (Уникальные слушатели)
-        daily_gross = sum(STATION_DATA[r]["reach"] * 1000 for r in radios) * sum(TIME_SLOTS_DATA[i]["weight"] for i in slots)
-        unique_daily = int(daily_gross * 0.7)
-        total_reach = int(unique_daily * (1 + (days * 0.035))) # Накопительный охват за период
+        # Охват 0.7
+        d_gross = sum(STATION_DATA[r]["reach"] * 1000 for r in radios) * sum(TIME_SLOTS_DATA[i]["weight"] for i in slots)
+        u_daily = int(d_gross * 0.7)
+        total_reach = int(u_daily * (1 + (days * 0.036)))
 
-        # Контакты (OTS)
-        avg_aqh = sum(STATION_DATA[r]["aqh"] * 1000 for r in radios) / len(radios)
-        total_ots = int(avg_aqh * len(radios) * len(slots) * days)
+        # Контакты OTS
+        avg_aqh = sum(STATION_DATA[r]["aqh"] * 1000 for r in radios)
+        total_ots = int(avg_aqh * len(slots) * days)
 
-        return air_cost, 0, total_price, total_reach, unique_daily, len(radios)*len(slots), total_ots, 0
-    except Exception as e:
-        logger.error(f"Calc error: {e}")
+        return air_cost, 0, total_price, total_reach, u_daily, len(radios)*len(slots), total_ots, 0
+    except:
         return 0, 0, 7000, 0, 0, 0, 0, 0
